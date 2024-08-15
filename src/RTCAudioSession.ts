@@ -8,8 +8,8 @@ export default class RTCAudioSession {
      */
     static audioSessionDidActivate() {
         // Only valid for iOS
-        if (Platform.OS === "ios") {
-            WebRTCModule.audioSessionDidActivate()
+        if (Platform.OS === 'ios') {
+            WebRTCModule.audioSessionDidActivate();
         }
     }
 
@@ -18,8 +18,8 @@ export default class RTCAudioSession {
      */
     static audioSessionDidDeactivate() {
         // Only valid for iOS
-        if (Platform.OS === "ios") {
-            WebRTCModule.audioSessionDidDeactivate()
+        if (Platform.OS === 'ios') {
+            WebRTCModule.audioSessionDidDeactivate();
         }
     }
 }
