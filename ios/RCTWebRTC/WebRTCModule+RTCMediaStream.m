@@ -262,8 +262,13 @@ RCT_EXPORT_METHOD(enumerateDevices : (RCTResponseSenderBlock)callback) {
     callback(@[]);
 #else
     NSMutableArray *devices = [NSMutableArray array];
+    NSMutableArray *deviceTypes = [NSMutableArray array];
+    [deviceTypes addObjectsFromArray:@[ AVCaptureDeviceTypeBuiltInWideAngleCamera, AVCaptureDeviceTypeBuiltInUltraWideCamera, AVCaptureDeviceTypeBuiltInTelephotoCamera, AVCaptureDeviceTypeBuiltInDualCamera, AVCaptureDeviceTypeBuiltInDualWideCamera, AVCaptureDeviceTypeBuiltInTripleCamera]];
+    if (@available(macos 14.0, ios 17.0, tvos 17.0, *)) {
+        [deviceTypes addObject:AVCaptureDeviceTypeExternal];
+    }
     AVCaptureDeviceDiscoverySession *videoevicesSession =
-        [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:@[ AVCaptureDeviceTypeBuiltInWideAngleCamera, AVCaptureDeviceTypeBuiltInUltraWideCamera, AVCaptureDeviceTypeBuiltInTelephotoCamera, AVCaptureDeviceTypeBuiltInDualCamera, AVCaptureDeviceTypeBuiltInDualWideCamera, AVCaptureDeviceTypeBuiltInTripleCamera]
+        [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:deviceTypes
                                                                mediaType:AVMediaTypeVideo
                                                                 position:AVCaptureDevicePositionUnspecified];
     for (AVCaptureDevice *device in videoevicesSession.devices) {
@@ -277,6 +282,7 @@ RCT_EXPORT_METHOD(enumerateDevices : (RCTResponseSenderBlock)callback) {
         if (device.localizedName != nil) {
             label = device.localizedName;
         }
+        
         [devices addObject:@{
             @"facing" : position,
             @"deviceId" : device.uniqueID,
