@@ -8,7 +8,7 @@ See a sample app in the `examples/GumTestApp` directory.
 
 **IMPORTANT:** Make sure you are using CocoaPods 1.10 or higher.  
 You may have to change the `platform` field in your podfile.  
-`react-native-webrtc` doesn't support iOS < 12 
+`@livekit/react-native-webrtc` doesn't support iOS < 12 
 Set it to '12.0' or above or you'll get an error when running `pod install`.
 
 ```
@@ -46,7 +46,7 @@ CXProviderDelegate should call through to `RTCAudioSession.sharedInstance.audioS
 Javascript methods are also provided to call these methods:
 
 ```
-import { RTCAudioSession } from 'react-native-webrtc'
+import { RTCAudioSession } from '@livekit/react-native-webrtc'
 
 // Call as needed.
 RTCAudioSession.audioSessionDidActivate();

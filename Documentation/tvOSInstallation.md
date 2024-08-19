@@ -13,7 +13,7 @@ Change the following dependency in your projects `package.json` file to get star
 
 **IMPORTANT:** Make sure you are using CocoaPods 1.10 or higher.  
 You may have to change the `platform` field in your podfile.  
-`react-native-webrtc` doesn't support tvOS < 16. Set it to '16.0' or above.
+`@livekit/react-native-webrtc` doesn't support tvOS < 16. Set it to '16.0' or above.
 Older versions of tvOS don't support WebRTC.
 
 ```
