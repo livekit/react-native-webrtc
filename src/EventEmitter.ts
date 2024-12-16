@@ -23,6 +23,7 @@ const NATIVE_EVENTS = [
     'dataChannelDidChangeBufferedAmount',
     'mediaStreamTrackMuteChanged',
     'mediaStreamTrackEnded',
+    'frameCryptionStateChanged',
 ];
 
 const eventEmitter = new EventEmitter();
