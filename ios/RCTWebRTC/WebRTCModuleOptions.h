@@ -11,6 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong, nullable) id<RTCAudioProcessingModule> audioProcessingModule;
 @property(nonatomic, strong, nullable) NSDictionary *fieldTrials;
 @property(nonatomic, assign) RTCLoggingSeverity loggingSeverity;
+@property(nonatomic, assign) BOOL enableMultitaskingCameraAccess;
 
 #pragma mark - This class is a singleton
 
