@@ -24,7 +24,30 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoDecoderFactory;
 import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoEncoderFactory;
 
-import org.webrtc.*;
+import org.webrtc.AddIceObserver;
+import org.webrtc.AudioTrack;
+import org.webrtc.CryptoOptions;
+import org.webrtc.EglBase;
+import org.webrtc.IceCandidate;
+import org.webrtc.Loggable;
+import org.webrtc.Logging;
+import org.webrtc.MediaConstraints;
+import org.webrtc.MediaStream;
+import org.webrtc.MediaStreamTrack;
+import org.webrtc.PeerConnection;
+import org.webrtc.PeerConnectionFactory;
+import org.webrtc.RTCStatsReport;
+import org.webrtc.RtpCapabilities;
+import org.webrtc.RtpParameters;
+import org.webrtc.RtpSender;
+import org.webrtc.RtpTransceiver;
+import org.webrtc.SdpObserver;
+import org.webrtc.SessionDescription;
+import org.webrtc.SoftwareVideoDecoderFactory;
+import org.webrtc.SoftwareVideoEncoderFactory;
+import org.webrtc.VideoDecoderFactory;
+import org.webrtc.VideoEncoderFactory;
+import org.webrtc.VideoTrack;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
@@ -119,6 +142,9 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         return "WebRTCModule";
     }
 
+    public PeerConnectionObserver getPeerConnectionObserver(int id) {
+        return mPeerConnectionObservers.get(id);
+    }
     private PeerConnection getPeerConnection(int id) {
         PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
         return (pco == null) ? null : pco.getPeerConnection();
@@ -1412,6 +1438,85 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
 
             pco.dataChannelSend(reactTag, data, type);
         });
+    }
+
+    // Frame Cryptor methods
+    ////////////////////////////////
+    RTCFrameCryptor frameCryptor = new RTCFrameCryptor(this);
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String frameCryptorFactoryCreateFrameCryptor(ReadableMap config) {
+        return frameCryptor.frameCryptorFactoryCreateFrameCryptor(config);
+    }
+
+    @ReactMethod
+    public void frameCryptorSetKeyIndex(ReadableMap config, Promise promise) {
+        frameCryptor.frameCryptorSetKeyIndex(config, promise);
+    }
+
+    @ReactMethod
+    public void frameCryptorGetKeyIndex(ReadableMap config, Promise promise) {
+        frameCryptor.frameCryptorGetKeyIndex(config, promise);
+    }
+
+    @ReactMethod
+    public void frameCryptorSetEnabled(ReadableMap config, Promise promise) {
+        frameCryptor.frameCryptorSetEnabled(config, promise);
+    }
+
+    @ReactMethod
+    public void frameCryptorGetEnabled(ReadableMap config, Promise promise) {
+        frameCryptor.frameCryptorGetEnabled(config, promise);
+    }
+
+    @ReactMethod
+    public void frameCryptorDispose(ReadableMap config, Promise promise) {
+        frameCryptor.frameCryptorDispose(config, promise);
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public String frameCryptorFactoryCreateKeyProvider(ReadableMap config) {
+        return frameCryptor.frameCryptorFactoryCreateKeyProvider(config);
+    }
+
+    @ReactMethod
+    public void keyProviderSetSharedKey(ReadableMap config, Promise promise) {
+        frameCryptor.keyProviderSetSharedKey(config, promise);
+    }
+
+    @ReactMethod
+    public void keyProviderRatchetSharedKey(ReadableMap config, Promise promise) {
+        frameCryptor.keyProviderRatchetSharedKey(config, promise);
+    }
+
+    @ReactMethod
+    public void keyProviderExportSharedKey(ReadableMap config, Promise promise) {
+        frameCryptor.keyProviderExportSharedKey(config, promise);
+    }
+
+    @ReactMethod
+    public void keyProviderSetKey(ReadableMap config, Promise promise) {
+        frameCryptor.keyProviderSetKey(config, promise);
+    }
+
+    @ReactMethod
+    public void keyProviderRatchetKey(ReadableMap config, Promise promise) {
+        frameCryptor.keyProviderRatchetKey(config, promise);
+    }
+
+    @ReactMethod
+    public void keyProviderExportKey(ReadableMap config, Promise promise) {
+        frameCryptor.keyProviderExportKey(config, promise);
+    }
+
+    @ReactMethod
+    public void keyProviderSetSifTrailer(ReadableMap config, Promise promise) {
+        frameCryptor.keyProviderSetSifTrailer(config, promise);
+    }
+
+    @ReactMethod
+    public void keyProviderDispose(ReadableMap config, Promise promise) {
+        frameCryptor.keyProviderDispose(config, promise);
     }
 
     @ReactMethod

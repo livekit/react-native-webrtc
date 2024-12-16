@@ -69,6 +69,61 @@
 
 int _transceiverNextId = 0;
 
+
+-(nullable RTCRtpSender *)getSenderByPeerConnectionId: (nonnull NSNumber *)peerConnectionId
+                                             senderId: (nonnull NSString *)senderId {
+    
+    RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+    if (!peerConnection) {
+        RCTLogWarn(@"PeerConnection %@ not found", peerConnectionId);
+        return nil;
+    }
+    RTCRtpSender *sender = nil;
+    for (RTCRtpSender *s in peerConnection.senders) {
+        if ([senderId isEqual:s.senderId]) {
+            sender = s;
+            break;
+        }
+    }
+    
+    return sender;
+}
+-(nullable RTCRtpReceiver *)getReceiverByPeerConnectionId: (nonnull NSNumber *)peerConnectionId
+                                               receiverId: (nonnull NSString *)receiverId {
+    
+    RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+    if (!peerConnection) {
+        RCTLogWarn(@"PeerConnection %@ not found", peerConnectionId);
+        return nil;
+    }
+    RTCRtpReceiver *receiver = nil;
+    for (RTCRtpReceiver *r in peerConnection.receivers) {
+        if ([receiverId isEqual:r.receiverId]) {
+            receiver = r;
+            break;
+        }
+    }
+    
+    return receiver;
+}
+
+-(nullable RTCRtpTransceiver *)getTransceiverByPeerConnectionId: (nonnull NSNumber *)peerConnectionId
+                                                  transceiverId: (nonnull NSString *)transceiverId {
+    RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
+    if (!peerConnection) {
+        RCTLogWarn(@"PeerConnection %@ not found", peerConnectionId);
+        return nil;
+    }
+    RTCRtpTransceiver *transceiver = nil;
+    for (RTCRtpTransceiver *t in peerConnection.transceivers) {
+        if ([transceiverId isEqual:t.sender.senderId]) {
+            transceiver = t;
+            break;
+        }
+    }
+    
+    return transceiver;
+}
 /*
  * This method is synchronous and blocking. This is done so we can implement createDataChannel
  * in the same way (synchronous) since the peer connection needs to exist before.

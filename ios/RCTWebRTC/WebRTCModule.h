@@ -21,6 +21,7 @@ static NSString *const kEventMediaStreamTrackMuteChanged = @"mediaStreamTrackMut
 static NSString *const kEventMediaStreamTrackEnded = @"mediaStreamTrackEnded";
 static NSString *const kEventPeerConnectionOnRemoveTrack = @"peerConnectionOnRemoveTrack";
 static NSString *const kEventPeerConnectionOnTrack = @"peerConnectionOnTrack";
+static NSString *const kEventFrameCryptionStateChanged = @"frameCryptionStateChanged";
 
 @interface WebRTCModule : RCTEventEmitter<RCTBridgeModule>
 
@@ -33,6 +34,10 @@ static NSString *const kEventPeerConnectionOnTrack = @"peerConnectionOnTrack";
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, RTCPeerConnection *> *peerConnections;
 @property(nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *localStreams;
 @property(nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
+
+
+@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCFrameCryptor*>* frameCryptors;
+@property(nonatomic, strong) NSMutableDictionary<NSString*, RTCFrameCryptorKeyProvider*>* keyProviders;
 
 - (RTCMediaStream *)streamForReactTag:(NSString *)reactTag;
 
