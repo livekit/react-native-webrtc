@@ -25,6 +25,7 @@ import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoDecoderFactory;
 import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoEncoderFactory;
 
 import org.webrtc.AddIceObserver;
+import org.webrtc.AudioProcessingFactory;
 import org.webrtc.AudioTrack;
 import org.webrtc.CryptoOptions;
 import org.webrtc.EglBase;
@@ -90,7 +91,8 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         String fieldTrials = options.fieldTrials;
 
         PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions.builder(reactContext)
-                                                 .setFieldTrials(fieldTrials)
+
+                .setFieldTrials(fieldTrials)
                                                  .setNativeLibraryLoader(new LibraryLoader())
                                                  .setInjectableLogger(injectableLogger, loggingSeverity)
                                                  .createInitializationOptions());
@@ -115,15 +117,29 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         if (adm == null) {
             adm = JavaAudioDeviceModule.builder(reactContext).createAudioDeviceModule();
         }
+        
+        AudioProcessingFactory audioProcessingFactory = null;
+        try {
+            if (options.audioProcessingFactoryFactory != null) {
+                audioProcessingFactory = options.audioProcessingFactoryFactory.call();
+            }
+        } catch (Exception e) {
+            // do nothing.
+        }
 
         Log.d(TAG, "Using video encoder factory: " + encoderFactory.getClass().getCanonicalName());
         Log.d(TAG, "Using video decoder factory: " + decoderFactory.getClass().getCanonicalName());
 
-        mFactory = PeerConnectionFactory.builder()
-                           .setAudioDeviceModule(adm)
-                           .setVideoEncoderFactory(encoderFactory)
-                           .setVideoDecoderFactory(decoderFactory)
-                           .createPeerConnectionFactory();
+        PeerConnectionFactory.Builder pcFactoryBuilder = PeerConnectionFactory.builder()
+                .setAudioDeviceModule(adm)
+                .setVideoEncoderFactory(encoderFactory)
+                .setVideoDecoderFactory(decoderFactory);
+
+        if (audioProcessingFactory != null) {
+            pcFactoryBuilder.setAudioProcessingFactory(audioProcessingFactory);
+        }
+
+        mFactory = pcFactoryBuilder.createPeerConnectionFactory();
 
         // PeerConnectionFactory now owns the adm native pointer, and we don't need it anymore.
         adm.release();
