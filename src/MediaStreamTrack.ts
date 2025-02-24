@@ -179,7 +179,8 @@ export default class MediaStreamTrack extends EventTarget<MediaStreamTrackEventM
      */
     async applyConstraints(constraints?: MediaTrackConstraints): Promise<void> {
         if (this.kind !== 'video') {
-            throw new Error('Only implemented for video tracks');
+            log.info(`Only implemented for video tracks, ignoring applyConstraints for ${this.id}`);
+            return;
         }
 
         const normalized = normalizeConstraints({ video: constraints ?? true });
