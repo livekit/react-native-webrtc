@@ -88,6 +88,10 @@ class GetUserMediaImpl {
     private AudioTrack createAudioTrack(ReadableMap constraints) {
         ReadableMap audioConstraintsMap = constraints.getMap("audio");
 
+        Log.d(TAG, "==========================================");
+        Log.d(TAG, "JONATHAN'S FORK: USING CUSTOM AUDIO DEVICE CODE");
+        Log.d(TAG, "==========================================");
+
         Log.d(TAG, "getUserMedia(audio): " + audioConstraintsMap);
 
         // Check if a specific audio device ID was requested
