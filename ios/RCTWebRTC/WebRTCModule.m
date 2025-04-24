@@ -10,6 +10,10 @@
 #import "WebRTCModule+RTCPeerConnection.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
+#import <WebRTC/RTCSSLAdapter.h>
+
+// Define fork version constant - increment this when making changes to the fork
+static NSString * const FORK_VERSION = @"fork-version-0";
 
 @interface WebRTCModule ()
 @end
@@ -139,6 +143,23 @@ RCT_EXPORT_MODULE();
         kEventPeerConnectionOnTrack,
         kEventFrameCryptionStateChanged
     ];
+}
+
+/**
+ * Get the default audio device ID
+ */
+RCT_EXPORT_METHOD(getDefaultAudioDeviceId:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    NSString *deviceId = [WebRTCModuleOptions sharedInstance].defaultAudioDeviceId ?: @"";
+    resolve(deviceId);
+}
+
+/**
+ * Get the version of this custom fork
+ */
+RCT_EXPORT_METHOD(getForkVersion:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    resolve(FORK_VERSION);
 }
 
 @end

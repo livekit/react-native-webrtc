@@ -1,5 +1,12 @@
 package com.oney.WebRTCModule;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
+import android.os.Build;
 import android.util.Log;
 import android.util.Pair;
 import android.util.SparseArray;
@@ -63,6 +70,9 @@ import java.util.concurrent.ExecutionException;
 @ReactModule(name = "WebRTCModule")
 public class WebRTCModule extends ReactContextBaseJavaModule {
     static final String TAG = WebRTCModule.class.getCanonicalName();
+
+    // Define fork version constant - increment this when making changes to the fork
+    public static final String FORK_VERSION = "fork-version-0";
 
     PeerConnectionFactory mFactory;
     VideoEncoderFactory mVideoEncoderFactory;
@@ -1573,5 +1583,15 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     public void getDefaultAudioDeviceId(Promise promise) {
         String deviceId = WebRTCModuleOptions.getInstance().defaultAudioDeviceId;
         promise.resolve(deviceId);
+    }
+
+    /**
+     * Get the version of this custom fork
+     *
+     * @param promise Promise to resolve with the fork version
+     */
+    @ReactMethod
+    public void getForkVersion(Promise promise) {
+        promise.resolve(FORK_VERSION);
     }
 }
