@@ -17,6 +17,9 @@ public class WebRTCModuleOptions {
     public AudioDeviceModule audioDeviceModule;
     public Callable<AudioProcessingFactory> audioProcessingFactoryFactory;
 
+    // Default audio device identifier used when no specific device is requested
+    public String defaultAudioDeviceId = "audio-1";
+
     public Loggable injectableLogger;
     public Logging.Severity loggingSeverity;
     public String fieldTrials;

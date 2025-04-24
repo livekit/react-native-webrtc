@@ -1544,4 +1544,34 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     public void removeListeners(Integer count) {
         // Keep: Required for RN built in Event Emitter Calls.
     }
+
+    /**
+     * Set the default audio device ID to use when no specific device is requested.
+     * This allows applications to control which audio device is used by default.
+     *
+     * @param deviceId The device ID to use as default (e.g., "audio-1", "expo-av-audio", etc.)
+     */
+    @ReactMethod
+    public void setDefaultAudioDeviceId(String deviceId) {
+        if (deviceId != null && !deviceId.isEmpty()) {
+            Log.d(TAG, "Setting default audio device ID to: " + deviceId);
+            WebRTCModuleOptions.getInstance().defaultAudioDeviceId = deviceId;
+            
+            // Update current instance
+            if (getUserMediaImpl != null) {
+                getUserMediaImpl.setAudioDeviceId(deviceId);
+            }
+        }
+    }
+
+    /**
+     * Get the current default audio device ID.
+     *
+     * @param promise Promise to resolve with the current default audio device ID
+     */
+    @ReactMethod
+    public void getDefaultAudioDeviceId(Promise promise) {
+        String deviceId = WebRTCModuleOptions.getInstance().defaultAudioDeviceId;
+        promise.resolve(deviceId);
+    }
 }

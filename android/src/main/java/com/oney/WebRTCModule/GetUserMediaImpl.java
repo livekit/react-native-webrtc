@@ -52,6 +52,7 @@ class GetUserMediaImpl {
     private final Map<String, TrackPrivate> tracks = new HashMap<>();
 
     private final WebRTCModule webRTCModule;
+    private String audioDeviceId;
 
     private Promise displayMediaPromise;
     private Intent mediaProjectionPermissionResultData;
@@ -59,6 +60,7 @@ class GetUserMediaImpl {
     GetUserMediaImpl(WebRTCModule webRTCModule, ReactApplicationContext reactContext) {
         this.webRTCModule = webRTCModule;
         this.reactContext = reactContext;
+        this.audioDeviceId = WebRTCModuleOptions.getInstance().defaultAudioDeviceId;
 
         reactContext.addActivityEventListener(new BaseActivityEventListener() {
             @Override
@@ -86,6 +88,15 @@ class GetUserMediaImpl {
         ReadableMap audioConstraintsMap = constraints.getMap("audio");
 
         Log.d(TAG, "getUserMedia(audio): " + audioConstraintsMap);
+
+        // Check if a specific audio device ID was requested
+        if (audioConstraintsMap != null && audioConstraintsMap.hasKey("deviceId")) {
+            Object deviceId = audioConstraintsMap.getString("deviceId");
+            if (deviceId != null) {
+                Log.d(TAG, "Using specific audio device ID: " + deviceId);
+                this.audioDeviceId = deviceId.toString();
+            }
+        }
 
         String id = UUID.randomUUID().toString();
         PeerConnectionFactory pcFactory = webRTCModule.mFactory;
@@ -157,7 +168,7 @@ class GetUserMediaImpl {
         }
 
         WritableMap audio = Arguments.createMap();
-        audio.putString("deviceId", "audio-1");
+        audio.putString("deviceId", audioDeviceId); // Use the configured/current audio device ID
         audio.putString("groupId", "");
         audio.putString("label", "Audio");
         audio.putString("kind", "audioinput");
@@ -344,7 +355,7 @@ class GetUserMediaImpl {
 
             if (track instanceof AudioTrack) {
                 WritableMap settings = Arguments.createMap();
-                settings.putString("deviceId", "audio-1");
+                settings.putString("deviceId", audioDeviceId); // Use the configured/current audio device ID
                 settings.putString("groupId", "");
                 trackInfo.putMap("settings", settings);
             }
@@ -430,6 +441,18 @@ class GetUserMediaImpl {
             } else {
                 videoSource.setVideoProcessor(null);
             }
+        }
+    }
+
+    /**
+     * Set the audio device ID to use for future getUserMedia calls.
+     * 
+     * @param deviceId The device ID to use
+     */
+    void setAudioDeviceId(String deviceId) {
+        if (deviceId != null && !deviceId.isEmpty()) {
+            Log.d(TAG, "Setting audio device ID to: " + deviceId);
+            this.audioDeviceId = deviceId;
         }
     }
 
