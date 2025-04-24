@@ -96,46 +96,71 @@ class GetUserMediaImpl {
 
         // Check if a specific audio device ID was requested
         if (audioConstraintsMap != null && audioConstraintsMap.hasKey("deviceId")) {
-            // Handle different types of deviceId constraints:
-            // 1. String: { deviceId: "audio-1" }
-            // 2. Object: { deviceId: { exact: "audio-1" } }
             try {
+                // IMPORTANT: Check the type of deviceId to avoid casting errors
                 ReadableType deviceIdType = audioConstraintsMap.getType("deviceId");
+                Log.d(TAG, "Audio deviceId type: " + deviceIdType);
                 
                 if (deviceIdType == ReadableType.String) {
-                    // Simple string deviceId
+                    // Case 1: deviceId is a simple string
                     String deviceId = audioConstraintsMap.getString("deviceId");
                     if (deviceId != null && !deviceId.isEmpty()) {
                         Log.d(TAG, "Using specific audio device ID (string): " + deviceId);
                         this.audioDeviceId = deviceId;
                     }
-                } else if (deviceIdType == ReadableType.Map) {
-                    // Object/Map with constraints like { exact: "audio-1" }
+                } 
+                else if (deviceIdType == ReadableType.Map) {
+                    // Case 2: deviceId is an object with exact/ideal constraints
                     ReadableMap deviceIdMap = audioConstraintsMap.getMap("deviceId");
+                    Log.d(TAG, "Audio deviceId is a map: " + deviceIdMap);
                     
-                    // Try to get from "exact" constraint first
+                    // Try to get the "exact" constraint first
                     if (deviceIdMap.hasKey("exact")) {
-                        String exactDeviceId = deviceIdMap.getString("exact");
-                        if (exactDeviceId != null && !exactDeviceId.isEmpty()) {
-                            Log.d(TAG, "Using exact audio device ID: " + exactDeviceId);
-                            this.audioDeviceId = exactDeviceId;
+                        ReadableType exactType = deviceIdMap.getType("exact");
+                        if (exactType == ReadableType.String) {
+                            String exactDeviceId = deviceIdMap.getString("exact");
+                            if (exactDeviceId != null && !exactDeviceId.isEmpty()) {
+                                Log.d(TAG, "Using exact audio device ID: " + exactDeviceId);
+                                this.audioDeviceId = exactDeviceId;
+                            }
+                        } else {
+                            Log.w(TAG, "Exact deviceId is not a string but: " + exactType);
                         }
                     }
-                    // If no exact, try "ideal" constraint
+                    // If no exact value, try the "ideal" constraint
                     else if (deviceIdMap.hasKey("ideal")) {
-                        String idealDeviceId = deviceIdMap.getString("ideal");
-                        if (idealDeviceId != null && !idealDeviceId.isEmpty()) {
-                            Log.d(TAG, "Using ideal audio device ID: " + idealDeviceId);
-                            this.audioDeviceId = idealDeviceId;
+                        ReadableType idealType = deviceIdMap.getType("ideal");
+                        if (idealType == ReadableType.String) {
+                            String idealDeviceId = deviceIdMap.getString("ideal");
+                            if (idealDeviceId != null && !idealDeviceId.isEmpty()) {
+                                Log.d(TAG, "Using ideal audio device ID: " + idealDeviceId);
+                                this.audioDeviceId = idealDeviceId;
+                            }
+                        } else {
+                            Log.w(TAG, "Ideal deviceId is not a string but: " + idealType);
                         }
                     }
-                } else {
+                    else {
+                        // Fallback: Just use whatever is in the map as a last resort
+                        Log.d(TAG, "No exact/ideal keys in deviceId map, using default");
+                    }
+                }
+                else if (deviceIdType == ReadableType.Array) {
+                    // Case 3: deviceId is an array
+                    Log.w(TAG, "Audio deviceId is an array, not currently supported");
+                }
+                else {
+                    // Case 4: deviceId is some other type
                     Log.w(TAG, "Unsupported deviceId type: " + deviceIdType);
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error processing audio deviceId constraint: " + e.getMessage());
+                // Log the full stack trace to help with debugging
+                Log.e(TAG, "Error processing audio deviceId constraint", e);
             }
         }
+        
+        // Log the final chosen audio device ID
+        Log.d(TAG, "Final audio device ID being used: " + this.audioDeviceId);
 
         String id = UUID.randomUUID().toString();
         PeerConnectionFactory pcFactory = webRTCModule.mFactory;

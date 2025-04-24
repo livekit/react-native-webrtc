@@ -13,7 +13,7 @@
 #import <WebRTC/RTCSSLAdapter.h>
 
 // Define fork version constant - increment this when making changes to the fork
-static NSString * const FORK_VERSION = @"fork-version-0";
+static NSString * const FORK_VERSION = @"fork-version-1";
 
 @interface WebRTCModule ()
 @end

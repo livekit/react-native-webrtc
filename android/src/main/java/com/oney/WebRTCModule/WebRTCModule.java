@@ -72,7 +72,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     static final String TAG = WebRTCModule.class.getCanonicalName();
 
     // Define fork version constant - increment this when making changes to the fork
-    public static final String FORK_VERSION = "fork-version-0";
+    public static final String FORK_VERSION = "fork-version-1";
 
     PeerConnectionFactory mFactory;
     VideoEncoderFactory mVideoEncoderFactory;
