@@ -15,6 +15,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -91,10 +92,44 @@ class GetUserMediaImpl {
 
         // Check if a specific audio device ID was requested
         if (audioConstraintsMap != null && audioConstraintsMap.hasKey("deviceId")) {
-            Object deviceId = audioConstraintsMap.getString("deviceId");
-            if (deviceId != null) {
-                Log.d(TAG, "Using specific audio device ID: " + deviceId);
-                this.audioDeviceId = deviceId.toString();
+            // Handle different types of deviceId constraints:
+            // 1. String: { deviceId: "audio-1" }
+            // 2. Object: { deviceId: { exact: "audio-1" } }
+            try {
+                ReadableType deviceIdType = audioConstraintsMap.getType("deviceId");
+                
+                if (deviceIdType == ReadableType.String) {
+                    // Simple string deviceId
+                    String deviceId = audioConstraintsMap.getString("deviceId");
+                    if (deviceId != null && !deviceId.isEmpty()) {
+                        Log.d(TAG, "Using specific audio device ID (string): " + deviceId);
+                        this.audioDeviceId = deviceId;
+                    }
+                } else if (deviceIdType == ReadableType.Map) {
+                    // Object/Map with constraints like { exact: "audio-1" }
+                    ReadableMap deviceIdMap = audioConstraintsMap.getMap("deviceId");
+                    
+                    // Try to get from "exact" constraint first
+                    if (deviceIdMap.hasKey("exact")) {
+                        String exactDeviceId = deviceIdMap.getString("exact");
+                        if (exactDeviceId != null && !exactDeviceId.isEmpty()) {
+                            Log.d(TAG, "Using exact audio device ID: " + exactDeviceId);
+                            this.audioDeviceId = exactDeviceId;
+                        }
+                    }
+                    // If no exact, try "ideal" constraint
+                    else if (deviceIdMap.hasKey("ideal")) {
+                        String idealDeviceId = deviceIdMap.getString("ideal");
+                        if (idealDeviceId != null && !idealDeviceId.isEmpty()) {
+                            Log.d(TAG, "Using ideal audio device ID: " + idealDeviceId);
+                            this.audioDeviceId = idealDeviceId;
+                        }
+                    }
+                } else {
+                    Log.w(TAG, "Unsupported deviceId type: " + deviceIdType);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing audio deviceId constraint: " + e.getMessage());
             }
         }
 
