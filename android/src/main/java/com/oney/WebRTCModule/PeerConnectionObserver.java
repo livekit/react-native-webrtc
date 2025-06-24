@@ -447,6 +447,8 @@ class PeerConnectionObserver implements PeerConnection.Observer {
             if (!existingTrack) {
                 if (track.kind().equals(MediaStreamTrack.VIDEO_TRACK_KIND)) {
                     videoTrackAdapters.addAdapter((VideoTrack) track);
+                } else if (track.kind().equals(MediaStreamTrack.AUDIO_TRACK_KIND)) {
+                    ((AudioTrack) track).setVolume(WebRTCModuleOptions.getInstance().defaultTrackVolume);
                 }
                 remoteTracks.put(track.id(), track);
             }
