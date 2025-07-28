@@ -10,12 +10,22 @@
 #import "WebRTCModule+RTCPeerConnection.h"
 #import "WebRTCModuleOptions.h"
 
+#import "ProcessorProvider.h"
 #import "ScreenCaptureController.h"
 #import "ScreenCapturer.h"
 #import "TrackCapturerEventsEmitter.h"
 #import "VideoCaptureController.h"
 
 @implementation WebRTCModule (RTCMediaStream)
+
+- (VideoEffectProcessor *)videoEffectProcessor {
+    return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setVideoEffectProcessor:(VideoEffectProcessor *)videoEffectProcessor {
+    objc_setAssociatedObject(
+        self, @selector(videoEffectProcessor), videoEffectProcessor, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
 
 #pragma mark - getUserMedia
 
@@ -191,10 +201,8 @@ RCT_EXPORT_METHOD(getDisplayMedia : (RCTPromiseResolveBlock)resolve rejecter : (
  * if audio permission was not granted, there will be no "audio" key in
  * the constraints dictionary.
  */
-RCT_EXPORT_METHOD(getUserMedia
-                  : (NSDictionary *)constraints successCallback
-                  : (RCTResponseSenderBlock)successCallback errorCallback
-                  : (RCTResponseSenderBlock)errorCallback) {
+RCT_EXPORT_METHOD(getUserMedia : (NSDictionary *)constraints successCallback : (RCTResponseSenderBlock)
+                      successCallback errorCallback : (RCTResponseSenderBlock)errorCallback) {
 #if TARGET_OS_TV
     errorCallback(@[ @"PlatformNotSupported", @"getUserMedia is not supported on tvOS." ]);
     return;
@@ -332,10 +340,8 @@ RCT_EXPORT_METHOD(mediaStreamCreate : (nonnull NSString *)streamID) {
     self.localStreams[streamID] = mediaStream;
 }
 
-RCT_EXPORT_METHOD(mediaStreamAddTrack
-                  : (nonnull NSString *)streamID
-                  : (nonnull NSNumber *)pcId
-                  : (nonnull NSString *)trackID) {
+RCT_EXPORT_METHOD(mediaStreamAddTrack : (nonnull NSString *)streamID : (nonnull NSNumber *)pcId : (nonnull NSString *)
+                      trackID) {
     RTCMediaStream *mediaStream = self.localStreams[streamID];
     if (mediaStream == nil) {
         return;
@@ -353,10 +359,8 @@ RCT_EXPORT_METHOD(mediaStreamAddTrack
     }
 }
 
-RCT_EXPORT_METHOD(mediaStreamRemoveTrack
-                  : (nonnull NSString *)streamID
-                  : (nonnull NSNumber *)pcId
-                  : (nonnull NSString *)trackID) {
+RCT_EXPORT_METHOD(mediaStreamRemoveTrack : (nonnull NSString *)streamID : (nonnull NSNumber *)
+                      pcId : (nonnull NSString *)trackID) {
     RTCMediaStream *mediaStream = self.localStreams[streamID];
     if (mediaStream == nil) {
         return;
@@ -413,11 +417,8 @@ RCT_EXPORT_METHOD(mediaStreamTrackSetEnabled : (nonnull NSNumber *)pcId : (nonnu
 #endif
 }
 
-RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints
-                  : (nonnull NSString *)trackID
-                  : (NSDictionary *)constraints
-                  : (RCTPromiseResolveBlock)resolve
-                  : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints : (nonnull NSString *)trackID : (NSDictionary *)
+                      constraints : (RCTPromiseResolveBlock)resolve : (RCTPromiseRejectBlock)reject) {
 #if TARGET_OS_TV
     reject(@"unsupported_platform", @"tvOS is not supported", nil);
     return;
@@ -453,6 +454,32 @@ RCT_EXPORT_METHOD(mediaStreamTrackSetVolume : (nonnull NSNumber *)pcId : (nonnul
         RTCAudioTrack *audioTrack = (RTCAudioTrack *)track;
         audioTrack.source.volume = volume;
     }
+}
+
+RCT_EXPORT_METHOD(mediaStreamTrackSetVideoEffects : (nonnull NSString *)trackID names : (nonnull NSArray<NSString *> *)
+                      names) {
+    RTCMediaStreamTrack *track = self.localTracks[trackID];
+    if (track == nil) {
+        return;
+    }
+
+    RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
+    RTCVideoSource *videoSource = videoTrack.source;
+
+    NSMutableArray *processors = [[NSMutableArray alloc] init];
+    for (NSString *name in names) {
+        NSObject<VideoFrameProcessorDelegate> *processor = [ProcessorProvider getProcessor:name];
+        if (processor != nil) {
+            [processors addObject:processor];
+        }
+    }
+
+    self.videoEffectProcessor = [[VideoEffectProcessor alloc] initWithProcessors:processors videoSource:videoSource];
+
+    VideoCaptureController *vcc = (VideoCaptureController *)videoTrack.captureController;
+    RTCVideoCapturer *capturer = vcc.capturer;
+
+    capturer.delegate = self.videoEffectProcessor;
 }
 
 #pragma mark - Helpers

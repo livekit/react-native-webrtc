@@ -90,13 +90,11 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         Logging.Severity loggingSeverity = options.loggingSeverity;
         String fieldTrials = options.fieldTrials;
 
-        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions
-                                                 .builder(reactContext)
-
-                                                 .setFieldTrials(fieldTrials)
-                                                 .setNativeLibraryLoader(new LibraryLoader())
-                                                 .setInjectableLogger(injectableLogger, loggingSeverity)
-                                                 .createInitializationOptions());
+        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions.builder(reactContext)
+                        .setFieldTrials(fieldTrials)
+                        .setNativeLibraryLoader(new LibraryLoader())
+                        .setInjectableLogger(injectableLogger, loggingSeverity)
+                        .createInitializationOptions());
 
         if (injectableLogger == null && loggingSeverity != null) {
             Logging.enableLogToDebugOutput(loggingSeverity);
@@ -749,7 +747,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
-    public void transceiverSetCodecPreferences(int id, String senderId, ReadableArray codecPreferences) {
+    public boolean transceiverSetCodecPreferences(int id, String senderId, ReadableArray codecPreferences) {
         ThreadUtils.runOnExecutor(() -> {
             WritableMap identifier = Arguments.createMap();
             WritableMap params = Arguments.createMap();
@@ -808,6 +806,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
                 Log.d(TAG, "transceiverSetCodecPreferences(): " + e.getMessage());
             }
         });
+        return true;
     }
 
     @ReactMethod
@@ -983,8 +982,8 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void mediaStreamTrackSetVideoEffect(String id, String name) {
-        ThreadUtils.runOnExecutor(() -> { getUserMediaImpl.setVideoEffect(id, name); });
+    public void mediaStreamTrackSetVideoEffects(String id, ReadableArray names) {
+        ThreadUtils.runOnExecutor(() -> { getUserMediaImpl.setVideoEffects(id, names); });
     }
 
     @ReactMethod
