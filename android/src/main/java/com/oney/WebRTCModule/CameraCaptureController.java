@@ -31,7 +31,6 @@ public class CameraCaptureController extends AbstractVideoCaptureController {
 
     private boolean isFrontFacing;
 
-
     /**
      * Equivalent to the camera index as a String
      */
@@ -50,7 +49,6 @@ public class CameraCaptureController extends AbstractVideoCaptureController {
      * {@link CameraEnumerator#createCapturer}.
      */
     private final CameraEventsHandler cameraEventsHandler = new CameraEventsHandler() {
-
         @Override
         public void onCameraOpening(String cameraName) {
             super.onCameraOpening(cameraName);
@@ -137,7 +135,6 @@ public class CameraCaptureController extends AbstractVideoCaptureController {
             }
         }
 
-
         // Otherwise, use facingMode (defaulting to front/user facing).
         if (cameraName == null) {
             cameraIndex = -1;
@@ -153,8 +150,8 @@ public class CameraCaptureController extends AbstractVideoCaptureController {
 
         if (cameraName == null) {
             if (onFinishedCallback != null) {
-                onFinishedCallback.accept(new Exception(
-                        "OverconstrainedError: could not find camera with deviceId: " + deviceId + " or facingMode: " + facingMode));
+                onFinishedCallback.accept(new Exception("OverconstrainedError: could not find camera with deviceId: "
+                        + deviceId + " or facingMode: " + facingMode));
             }
             return;
         }
@@ -174,9 +171,7 @@ public class CameraCaptureController extends AbstractVideoCaptureController {
         CameraVideoCapturer capturer = (CameraVideoCapturer) videoCapturer;
         Runnable changeFormatIfNeededAndFinish = () -> {
             saveConstraints.run();
-            if (targetWidth != oldTargetWidth ||
-                    targetHeight != oldTargetHeight ||
-                    targetFps != oldTargetFps) {
+            if (targetWidth != oldTargetWidth || targetHeight != oldTargetHeight || targetFps != oldTargetFps) {
                 updateActualSize(finalCameraIndex, finalCameraName, videoCapturer);
                 capturer.changeCaptureFormat(targetWidth, targetHeight, targetFps);
             }

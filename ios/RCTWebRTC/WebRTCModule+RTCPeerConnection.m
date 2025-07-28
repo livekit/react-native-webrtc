@@ -70,10 +70,8 @@
 
 int _transceiverNextId = 0;
 
-
--(nullable RTCRtpSender *)getSenderByPeerConnectionId: (nonnull NSNumber *)peerConnectionId
-                                             senderId: (nonnull NSString *)senderId {
-    
+- (nullable RTCRtpSender *)getSenderByPeerConnectionId:(nonnull NSNumber *)peerConnectionId
+                                              senderId:(nonnull NSString *)senderId {
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     if (!peerConnection) {
         RCTLogWarn(@"PeerConnection %@ not found", peerConnectionId);
@@ -86,12 +84,11 @@ int _transceiverNextId = 0;
             break;
         }
     }
-    
+
     return sender;
 }
--(nullable RTCRtpReceiver *)getReceiverByPeerConnectionId: (nonnull NSNumber *)peerConnectionId
-                                               receiverId: (nonnull NSString *)receiverId {
-    
+- (nullable RTCRtpReceiver *)getReceiverByPeerConnectionId:(nonnull NSNumber *)peerConnectionId
+                                                receiverId:(nonnull NSString *)receiverId {
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     if (!peerConnection) {
         RCTLogWarn(@"PeerConnection %@ not found", peerConnectionId);
@@ -104,12 +101,12 @@ int _transceiverNextId = 0;
             break;
         }
     }
-    
+
     return receiver;
 }
 
--(nullable RTCRtpTransceiver *)getTransceiverByPeerConnectionId: (nonnull NSNumber *)peerConnectionId
-                                                  transceiverId: (nonnull NSString *)transceiverId {
+- (nullable RTCRtpTransceiver *)getTransceiverByPeerConnectionId:(nonnull NSNumber *)peerConnectionId
+                                                   transceiverId:(nonnull NSString *)transceiverId {
     RTCPeerConnection *peerConnection = self.peerConnections[peerConnectionId];
     if (!peerConnection) {
         RCTLogWarn(@"PeerConnection %@ not found", peerConnectionId);
@@ -122,7 +119,7 @@ int _transceiverNextId = 0;
             break;
         }
     }
-    
+
     return transceiver;
 }
 /*

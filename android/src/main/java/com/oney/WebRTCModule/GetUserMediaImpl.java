@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
+
 import androidx.core.util.Consumer;
 
 import com.facebook.react.bridge.Arguments;
@@ -192,8 +193,8 @@ class GetUserMediaImpl {
 
             Log.d(TAG, "getUserMedia(video): " + videoConstraintsMap);
 
-            CameraCaptureController cameraCaptureController =
-                    new CameraCaptureController(reactContext.getCurrentActivity(), getCameraEnumerator(), videoConstraintsMap);
+            CameraCaptureController cameraCaptureController = new CameraCaptureController(
+                    reactContext.getCurrentActivity(), getCameraEnumerator(), videoConstraintsMap);
 
             videoTrack = createVideoTrack(cameraCaptureController);
         }
@@ -237,10 +238,11 @@ class GetUserMediaImpl {
     void applyConstraints(String trackId, ReadableMap constraints, Promise promise) {
         TrackPrivate track = tracks.get(trackId);
         if (track != null && track.videoCaptureController instanceof AbstractVideoCaptureController) {
-            AbstractVideoCaptureController captureController = (AbstractVideoCaptureController) track.videoCaptureController;
+            AbstractVideoCaptureController captureController =
+                    (AbstractVideoCaptureController) track.videoCaptureController;
             captureController.applyConstraints(constraints, new Consumer<Exception>() {
                 public void accept(Exception e) {
-                    if(e != null) {
+                    if (e != null) {
                         promise.reject(e);
                         return;
                     }
@@ -503,5 +505,7 @@ class GetUserMediaImpl {
         }
     }
 
-    public interface BiConsumer<T, U> { void accept(T t, U u); }
+    public interface BiConsumer<T, U> {
+        void accept(T t, U u);
+    }
 }

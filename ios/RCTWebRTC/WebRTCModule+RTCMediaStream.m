@@ -6,9 +6,9 @@
 #import <WebRTC/RTCVideoTrack.h>
 
 #import "RTCMediaStreamTrack+React.h"
-#import "WebRTCModuleOptions.h"
 #import "WebRTCModule+RTCMediaStream.h"
 #import "WebRTCModule+RTCPeerConnection.h"
+#import "WebRTCModuleOptions.h"
 
 #import "ScreenCaptureController.h"
 #import "ScreenCapturer.h"
@@ -83,8 +83,8 @@
             }
         } else if ([track.kind isEqualToString:@"audio"]) {
             settings = @{
-                @"deviceId": @"audio",
-                @"groupId": @"",
+                @"deviceId" : @"audio",
+                @"groupId" : @"",
             };
         }
 
@@ -119,7 +119,8 @@
     RTCCameraVideoCapturer *videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
     VideoCaptureController *videoCaptureController =
         [[VideoCaptureController alloc] initWithCapturer:videoCapturer andConstraints:constraints[@"video"]];
-    videoCaptureController.enableMultitaskingCameraAccess = [WebRTCModuleOptions sharedInstance].enableMultitaskingCameraAccess;
+    videoCaptureController.enableMultitaskingCameraAccess =
+        [WebRTCModuleOptions sharedInstance].enableMultitaskingCameraAccess;
     videoTrack.captureController = videoCaptureController;
     [videoCaptureController startCapture];
 #endif
@@ -243,8 +244,8 @@ RCT_EXPORT_METHOD(getUserMedia
             }
         } else if ([track.kind isEqualToString:@"audio"]) {
             settings = @{
-                @"deviceId": @"audio",
-                @"groupId": @"",
+                @"deviceId" : @"audio",
+                @"groupId" : @"",
             };
         }
 
@@ -271,7 +272,14 @@ RCT_EXPORT_METHOD(enumerateDevices : (RCTResponseSenderBlock)callback) {
 #else
     NSMutableArray *devices = [NSMutableArray array];
     NSMutableArray *deviceTypes = [NSMutableArray array];
-    [deviceTypes addObjectsFromArray:@[ AVCaptureDeviceTypeBuiltInWideAngleCamera, AVCaptureDeviceTypeBuiltInUltraWideCamera, AVCaptureDeviceTypeBuiltInTelephotoCamera, AVCaptureDeviceTypeBuiltInDualCamera, AVCaptureDeviceTypeBuiltInDualWideCamera, AVCaptureDeviceTypeBuiltInTripleCamera]];
+    [deviceTypes addObjectsFromArray:@[
+        AVCaptureDeviceTypeBuiltInWideAngleCamera,
+        AVCaptureDeviceTypeBuiltInUltraWideCamera,
+        AVCaptureDeviceTypeBuiltInTelephotoCamera,
+        AVCaptureDeviceTypeBuiltInDualCamera,
+        AVCaptureDeviceTypeBuiltInDualWideCamera,
+        AVCaptureDeviceTypeBuiltInTripleCamera
+    ]];
     if (@available(macos 14.0, ios 17.0, tvos 17.0, *)) {
         [deviceTypes addObject:AVCaptureDeviceTypeExternal];
     }
@@ -290,7 +298,7 @@ RCT_EXPORT_METHOD(enumerateDevices : (RCTResponseSenderBlock)callback) {
         if (device.localizedName != nil) {
             label = device.localizedName;
         }
-        
+
         [devices addObject:@{
             @"facing" : position,
             @"deviceId" : device.uniqueID,
@@ -405,7 +413,11 @@ RCT_EXPORT_METHOD(mediaStreamTrackSetEnabled : (nonnull NSNumber *)pcId : (nonnu
 #endif
 }
 
-RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints : (nonnull NSString *)trackID : (NSDictionary *)constraints : (RCTPromiseResolveBlock)resolve : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints
+                  : (nonnull NSString *)trackID
+                  : (NSDictionary *)constraints
+                  : (RCTPromiseResolveBlock)resolve
+                  : (RCTPromiseRejectBlock)reject) {
 #if TARGET_OS_TV
     reject(@"unsupported_platform", @"tvOS is not supported", nil);
     return;
@@ -416,7 +428,7 @@ RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints : (nonnull NSString *)trackID
             RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
             if ([videoTrack.captureController isKindOfClass:[CaptureController class]]) {
                 CaptureController *vcc = (CaptureController *)videoTrack.captureController;
-                NSError* error = nil;
+                NSError *error = nil;
                 [vcc applyConstraints:constraints error:&error];
                 if (error) {
                     reject(@"E_INVALID", error.localizedDescription, error);

@@ -90,9 +90,10 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         Logging.Severity loggingSeverity = options.loggingSeverity;
         String fieldTrials = options.fieldTrials;
 
-        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions.builder(reactContext)
+        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions
+                                                 .builder(reactContext)
 
-                .setFieldTrials(fieldTrials)
+                                                 .setFieldTrials(fieldTrials)
                                                  .setNativeLibraryLoader(new LibraryLoader())
                                                  .setInjectableLogger(injectableLogger, loggingSeverity)
                                                  .createInitializationOptions());
@@ -117,7 +118,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         if (adm == null) {
             adm = JavaAudioDeviceModule.builder(reactContext).createAudioDeviceModule();
         }
-        
+
         AudioProcessingFactory audioProcessingFactory = null;
         try {
             if (options.audioProcessingFactoryFactory != null) {
@@ -131,9 +132,9 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "Using video decoder factory: " + decoderFactory.getClass().getCanonicalName());
 
         PeerConnectionFactory.Builder pcFactoryBuilder = PeerConnectionFactory.builder()
-                .setAudioDeviceModule(adm)
-                .setVideoEncoderFactory(encoderFactory)
-                .setVideoDecoderFactory(decoderFactory);
+                                                                 .setAudioDeviceModule(adm)
+                                                                 .setVideoEncoderFactory(encoderFactory)
+                                                                 .setVideoDecoderFactory(decoderFactory);
 
         if (audioProcessingFactory != null) {
             pcFactoryBuilder.setAudioProcessingFactory(audioProcessingFactory);
@@ -1319,11 +1320,14 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
                 return;
             }
 
-            IceCandidate candidate = new IceCandidate(
-                candidateMap.hasKey("sdpMid") && !candidateMap.isNull("sdpMid") ? candidateMap.getString("sdpMid")  : "",
-                candidateMap.hasKey("sdpMLineIndex") && !candidateMap.isNull("sdpMLineIndex")  ? candidateMap.getInt("sdpMLineIndex") : 0,
-                candidateMap.getString("candidate"));
-            
+            IceCandidate candidate = new IceCandidate(candidateMap.hasKey("sdpMid") && !candidateMap.isNull("sdpMid")
+                            ? candidateMap.getString("sdpMid")
+                            : "",
+                    candidateMap.hasKey("sdpMLineIndex") && !candidateMap.isNull("sdpMLineIndex")
+                            ? candidateMap.getInt("sdpMLineIndex")
+                            : 0,
+                    candidateMap.getString("candidate"));
+
             peerConnection.addIceCandidate(candidate, new AddIceObserver() {
                 @Override
                 public void onAddSuccess() {
