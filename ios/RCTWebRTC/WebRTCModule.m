@@ -77,7 +77,8 @@
             }
             RCTLogInfo(@"Using audio processing module: %@", NSStringFromClass([audioProcessingModule class]));
             _peerConnectionFactory =
-                [[RTCPeerConnectionFactory alloc] initWithBypassVoiceProcessing:NO
+                [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:RTCAudioDeviceModuleTypeAudioEngine
+                                                          bypassVoiceProcessing:NO
                                                                  encoderFactory:encoderFactory
                                                                  decoderFactory:decoderFactory
                                                           audioProcessingModule:audioProcessingModule];
