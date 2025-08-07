@@ -95,6 +95,13 @@ class GetUserMediaImpl {
         PeerConnectionFactory pcFactory = webRTCModule.mFactory;
         MediaConstraints peerConstraints = webRTCModule.constraintsForOptions(audioConstraintsMap);
 
+        // Default to on if not specified.
+        // MediaConstraints uses first value it finds.
+        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googAutoGainControl", "true"));
+        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googNoiseSuppression", "true"));
+        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googEchoCancellation", "true"));
+        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googHighpassFilter", "true"));
+
         // PeerConnectionFactory.createAudioSource will throw an error when mandatory constraints contain nulls.
         // so, let's check for nulls
         checkMandatoryConstraints(peerConstraints);
