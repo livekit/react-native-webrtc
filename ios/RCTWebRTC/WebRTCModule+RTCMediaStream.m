@@ -45,16 +45,16 @@
     NSMutableDictionary *optionalConstraints = [NSMutableDictionary dictionary];
     optionalConstraints[@"googAutoGainControl"] = audioConstraints[@"autoGainControl"] != nil
                                                       ? [self convertBoolToString:audioConstraints[@"autoGainControl"]]
-                                                      : @"false";
+                                                      : @"true";
     optionalConstraints[@"googNoiseSuppression"] =
         audioConstraints[@"noiseSuppression"] != nil ? [self convertBoolToString:audioConstraints[@"noiseSuppression"]]
-                                                     : @"false";
+                                                     : @"true";
     optionalConstraints[@"googEchoCancellation"] =
         audioConstraints[@"echoCancellation"] != nil ? [self convertBoolToString:audioConstraints[@"echoCancellation"]]
-                                                     : @"false";
+                                                     : @"true";
     optionalConstraints[@"googHighpassFilter"] = audioConstraints[@"highpassFilter"] != nil
                                                      ? [self convertBoolToString:audioConstraints[@"highpassFilter"]]
-                                                     : @"false";
+                                                     : @"true";
 
     RTCMediaConstraints *mediaConstraints =
         [[RTCMediaConstraints alloc] initWithMandatoryConstraints:nil optionalConstraints:optionalConstraints];

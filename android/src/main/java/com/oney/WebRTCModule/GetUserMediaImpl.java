@@ -96,22 +96,21 @@ class GetUserMediaImpl {
         MediaConstraints peerConstraints = webRTCModule.constraintsForOptions(audioConstraintsMap);
 
         // Convert given constraints into the internal webrtc media constraints.
-        // Default to on if not specified.
         peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googAutoGainControl",
-                audioConstraintsMap.hasKey("audioGainControl")
-                        ? audioConstraintsMap.getDynamic("autoGainControl").asString()
+                audioConstraintsMap.hasKey("autoGainControl")
+                        ? ReactBridgeUtil.getMapStrValue(audioConstraintsMap, "autoGainControl")
                         : "true"));
         peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googNoiseSuppression",
                 audioConstraintsMap.hasKey("noiseSuppression")
-                        ? audioConstraintsMap.getDynamic("noiseSuppression").asString()
+                        ? ReactBridgeUtil.getMapStrValue(audioConstraintsMap, "noiseSuppression")
                         : "true"));
         peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googEchoCancellation",
                 audioConstraintsMap.hasKey("echoCancellation")
-                        ? audioConstraintsMap.getDynamic("echoCancellation").asString()
+                        ? ReactBridgeUtil.getMapStrValue(audioConstraintsMap, "echoCancellation")
                         : "true"));
         peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googHighpassFilter",
                 audioConstraintsMap.hasKey("highpassFilter")
-                        ? audioConstraintsMap.getDynamic("highpassFilter").asString()
+                        ? ReactBridgeUtil.getMapStrValue(audioConstraintsMap, "highpassFilter")
                         : "true"));
 
         // PeerConnectionFactory.createAudioSource will throw an error when mandatory constraints contain nulls.
