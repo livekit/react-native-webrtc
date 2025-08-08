@@ -512,33 +512,6 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             mediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair(key, value));
         }
 
-        ReadableMapKeySetIterator audioKeyIterator = options.keySetIterator();
-
-        while (audioKeyIterator.hasNextKey()) {
-            String key = audioKeyIterator.nextKey();
-            String value = ReactBridgeUtil.getMapStrValue(options, key);
-            String googKey = null;
-            switch (key) {
-                case "autoGainControl":
-                    googKey = "googAutoGainControl";
-                    break;
-                case "noiseSuppression":
-                case "voiceIsolation":
-                    googKey = "googNoiseSuppression";
-                    break;
-                case "echoCancellation":
-                    googKey = "googEchoCancellation";
-                    break;
-                case "highpassFilter":
-                    googKey = "googHighpassFilter";
-                    break;
-                default:
-                    break;
-            }
-            if (googKey != null) {
-                mediaConstraints.optional.add(new MediaConstraints.KeyValuePair(googKey, value));
-            }
-        }
         return mediaConstraints;
     }
 

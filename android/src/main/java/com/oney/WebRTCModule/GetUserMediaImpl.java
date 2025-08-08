@@ -95,12 +95,24 @@ class GetUserMediaImpl {
         PeerConnectionFactory pcFactory = webRTCModule.mFactory;
         MediaConstraints peerConstraints = webRTCModule.constraintsForOptions(audioConstraintsMap);
 
+        // Convert given constraints into the internal webrtc media constraints.
         // Default to on if not specified.
-        // MediaConstraints uses first value it finds.
-        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googAutoGainControl", "true"));
-        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googNoiseSuppression", "true"));
-        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googEchoCancellation", "true"));
-        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googHighpassFilter", "true"));
+        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googAutoGainControl",
+                audioConstraintsMap.hasKey("audioGainControl")
+                        ? audioConstraintsMap.getDynamic("autoGainControl").asString()
+                        : "true"));
+        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googNoiseSuppression",
+                audioConstraintsMap.hasKey("noiseSuppression")
+                        ? audioConstraintsMap.getDynamic("noiseSuppression").asString()
+                        : "true"));
+        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googEchoCancellation",
+                audioConstraintsMap.hasKey("echoCancellation")
+                        ? audioConstraintsMap.getDynamic("echoCancellation").asString()
+                        : "true"));
+        peerConstraints.optional.add(new MediaConstraints.KeyValuePair("googHighpassFilter",
+                audioConstraintsMap.hasKey("highpassFilter")
+                        ? audioConstraintsMap.getDynamic("highpassFilter").asString()
+                        : "true"));
 
         // PeerConnectionFactory.createAudioSource will throw an error when mandatory constraints contain nulls.
         // so, let's check for nulls
