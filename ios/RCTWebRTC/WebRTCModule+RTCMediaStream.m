@@ -29,6 +29,10 @@
 
 #pragma mark - getUserMedia
 
+- (NSString *)convertBoolToString:(id)value {
+    return value ? @"true" : @"false";
+}
+
 /**
  * Initializes a new {@link RTCAudioTrack} which satisfies the given constraints.
  *
@@ -37,7 +41,26 @@
  */
 - (RTCAudioTrack *)createAudioTrack:(NSDictionary *)constraints {
     NSString *trackId = [[NSUUID UUID] UUIDString];
-    RTCAudioTrack *audioTrack = [self.peerConnectionFactory audioTrackWithTrackId:trackId];
+    NSDictionary *audioConstraints = constraints[@"audio"];
+    NSMutableDictionary *optionalConstraints = [NSMutableDictionary dictionary];
+    optionalConstraints[@"googAutoGainControl"] = audioConstraints[@"autoGainControl"] != nil
+                                                      ? [self convertBoolToString:audioConstraints[@"autoGainControl"]]
+                                                      : @"true";
+    optionalConstraints[@"googNoiseSuppression"] =
+        audioConstraints[@"noiseSuppression"] != nil ? [self convertBoolToString:audioConstraints[@"noiseSuppression"]]
+                                                     : @"true";
+    optionalConstraints[@"googEchoCancellation"] =
+        audioConstraints[@"echoCancellation"] != nil ? [self convertBoolToString:audioConstraints[@"echoCancellation"]]
+                                                     : @"true";
+    optionalConstraints[@"googHighpassFilter"] = audioConstraints[@"highpassFilter"] != nil
+                                                     ? [self convertBoolToString:audioConstraints[@"highpassFilter"]]
+                                                     : @"true";
+
+    RTCMediaConstraints *mediaConstraints =
+        [[RTCMediaConstraints alloc] initWithMandatoryConstraints:nil optionalConstraints:optionalConstraints];
+
+    RTCAudioSource *audioSource = [self.peerConnectionFactory audioSourceWithConstraints:mediaConstraints];
+    RTCAudioTrack *audioTrack = [self.peerConnectionFactory audioTrackWithSource:audioSource trackId:trackId];
     return audioTrack;
 }
 /**
