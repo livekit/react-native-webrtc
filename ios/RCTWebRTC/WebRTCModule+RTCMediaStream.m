@@ -224,8 +224,10 @@ RCT_EXPORT_METHOD(getDisplayMedia : (RCTPromiseResolveBlock)resolve rejecter : (
  * if audio permission was not granted, there will be no "audio" key in
  * the constraints dictionary.
  */
-RCT_EXPORT_METHOD(getUserMedia : (NSDictionary *)constraints successCallback : (RCTResponseSenderBlock)
-                      successCallback errorCallback : (RCTResponseSenderBlock)errorCallback) {
+RCT_EXPORT_METHOD(getUserMedia
+                  : (NSDictionary *)constraints successCallback
+                  : (RCTResponseSenderBlock)successCallback errorCallback
+                  : (RCTResponseSenderBlock)errorCallback) {
 #if TARGET_OS_TV
     errorCallback(@[ @"PlatformNotSupported", @"getUserMedia is not supported on tvOS." ]);
     return;
@@ -363,8 +365,10 @@ RCT_EXPORT_METHOD(mediaStreamCreate : (nonnull NSString *)streamID) {
     self.localStreams[streamID] = mediaStream;
 }
 
-RCT_EXPORT_METHOD(mediaStreamAddTrack : (nonnull NSString *)streamID : (nonnull NSNumber *)pcId : (nonnull NSString *)
-                      trackID) {
+RCT_EXPORT_METHOD(mediaStreamAddTrack
+                  : (nonnull NSString *)streamID
+                  : (nonnull NSNumber *)pcId
+                  : (nonnull NSString *)trackID) {
     RTCMediaStream *mediaStream = self.localStreams[streamID];
     if (mediaStream == nil) {
         return;
@@ -382,8 +386,10 @@ RCT_EXPORT_METHOD(mediaStreamAddTrack : (nonnull NSString *)streamID : (nonnull 
     }
 }
 
-RCT_EXPORT_METHOD(mediaStreamRemoveTrack : (nonnull NSString *)streamID : (nonnull NSNumber *)
-                      pcId : (nonnull NSString *)trackID) {
+RCT_EXPORT_METHOD(mediaStreamRemoveTrack
+                  : (nonnull NSString *)streamID
+                  : (nonnull NSNumber *)pcId
+                  : (nonnull NSString *)trackID) {
     RTCMediaStream *mediaStream = self.localStreams[streamID];
     if (mediaStream == nil) {
         return;
@@ -440,8 +446,11 @@ RCT_EXPORT_METHOD(mediaStreamTrackSetEnabled : (nonnull NSNumber *)pcId : (nonnu
 #endif
 }
 
-RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints : (nonnull NSString *)trackID : (NSDictionary *)
-                      constraints : (RCTPromiseResolveBlock)resolve : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(mediaStreamTrackApplyConstraints
+                  : (nonnull NSString *)trackID
+                  : (NSDictionary *)constraints
+                  : (RCTPromiseResolveBlock)resolve
+                  : (RCTPromiseRejectBlock)reject) {
 #if TARGET_OS_TV
     reject(@"unsupported_platform", @"tvOS is not supported", nil);
     return;
@@ -479,8 +488,9 @@ RCT_EXPORT_METHOD(mediaStreamTrackSetVolume : (nonnull NSNumber *)pcId : (nonnul
     }
 }
 
-RCT_EXPORT_METHOD(mediaStreamTrackSetVideoEffects : (nonnull NSString *)trackID names : (nonnull NSArray<NSString *> *)
-                      names) {
+RCT_EXPORT_METHOD(mediaStreamTrackSetVideoEffects
+                  : (nonnull NSString *)trackID names
+                  : (nonnull NSArray<NSString *> *)names) {
     RTCMediaStreamTrack *track = self.localTracks[trackID];
     if (track == nil) {
         return;
