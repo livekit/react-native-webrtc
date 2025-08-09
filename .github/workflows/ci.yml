@@ -19,6 +19,8 @@ jobs:
   clang:
     name: Clang-Format Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         path:
