@@ -19,10 +19,13 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoDecoderFactory;
 import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoEncoderFactory;
+import com.effectssdk.tsvb.EffectsSDKStatus;
 
 import org.webrtc.AddIceObserver;
 import org.webrtc.AudioProcessingFactory;
@@ -950,6 +953,136 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             }
 
             ((AudioTrack) track).setVolume(volume);
+        });
+    }
+
+    @ReactMethod
+    public void switchCamera(String trackId, Promise promise) {
+        ThreadUtils.runOnExecutor(() -> {
+            try {
+                getUserMediaImpl.switchCamera(trackId);
+                promise.resolve(true);
+            } catch (Exception e) {
+                promise.reject("CAMERA_SWITCH_ERROR", e.getMessage(), e);
+            }
+        });
+    }
+    
+    @ReactMethod
+    public void initializeEffectsSdk(String trackId, String customerId, String url, Promise promise) {
+        ThreadUtils.runOnExecutor(() -> {
+            try {
+                EffectsSDKStatus status = getUserMediaImpl.initializeEffectsSdk(trackId, customerId, url);
+                promise.resolve(status.toString());
+            } catch (Exception e) {
+                promise.reject("EFFECTS_SDK_INIT_ERROR", e.getMessage(), e);
+            }
+        });
+    }
+    
+    @ReactMethod
+    public void setEffectsSdkPipelineMode(String trackId, String pipelineMode) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.setEffectsSdkPipelineMode(trackId, pipelineMode);
+        });
+    }
+    
+    @ReactMethod
+    public void setEffectsSdkBlurPower(String trackId, double blurPower) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.setEffectsSdkBlurPower(trackId, blurPower);
+        });
+    }
+    
+    @ReactMethod
+    public void enableEffectsSdkVideoStream(String trackId, boolean enabled) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.enableEffectsSdkVideoStream(trackId, enabled);
+        });
+    }
+    
+    @ReactMethod
+    public void enableEffectsSdkBeautification(String trackId, boolean enableBeautification) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.enableEffectsSdkBeautification(trackId, enableBeautification);
+        });
+    }
+    
+    @ReactMethod
+    public void isEffectsSdkBeautificationEnabled(String trackId, Promise promise) {
+        ThreadUtils.runOnExecutor(() -> {
+            try {
+                boolean enabled = getUserMediaImpl.isEffectsSdkBeautificationEnabled(trackId);
+                promise.resolve(enabled);
+            } catch (Exception e) {
+                promise.reject("EFFECTS_SDK_ERROR", e.getMessage(), e);
+            }
+        });
+    }
+    
+    @ReactMethod
+    public void setEffectsSdkBeautificationPower(String trackId, double beautificationPower) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.setEffectsSdkBeautificationPower(trackId, beautificationPower);
+        });
+    }
+    
+    @ReactMethod
+    public void setEffectsSdkZoomLevel(String trackId, double zoomLevel) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.setEffectsSdkZoomLevel(trackId, zoomLevel);
+        });
+    }
+    
+    @ReactMethod
+    public void getEffectsSdkZoomLevel(String trackId, Promise promise) {
+        ThreadUtils.runOnExecutor(() -> {
+            try {
+                double zoomLevel = getUserMediaImpl.getEffectsSdkZoomLevel(trackId);
+                promise.resolve(zoomLevel);
+            } catch (Exception e) {
+                promise.reject("EFFECTS_SDK_ERROR", e.getMessage(), e);
+            }
+        });
+    }
+    
+    @ReactMethod
+    public void enableEffectsSdkSharpening(String trackId, boolean enableSharpening) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.enableEffectsSdkSharpening(trackId, enableSharpening);
+        });
+    }
+    
+    @ReactMethod
+    public void setEffectsSdkSharpeningStrength(String trackId, double strength) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.setEffectsSdkSharpeningStrength(trackId, strength);
+        });
+    }
+    
+    @ReactMethod
+    public void getEffectsSdkSharpeningStrength(String trackId, Promise promise) {
+        ThreadUtils.runOnExecutor(() -> {
+            try {
+                double strength = getUserMediaImpl.getEffectsSdkSharpeningStrength(trackId);
+                promise.resolve(strength);
+            } catch (Exception e) {
+                promise.reject("EFFECTS_SDK_ERROR", e.getMessage(), e);
+            }
+        });
+    }
+    
+    @ReactMethod
+    public void setEffectsSdkColorFilterStrength(String trackId, double strength) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.setEffectsSdkColorFilterStrength(trackId, strength);
+        });
+    }
+    
+    @ReactMethod
+    public void setEffectsSdkColorCorrectionMode(String trackId, String colorCorrectionMode) {
+        ThreadUtils.runOnExecutor(() -> {
+            getUserMediaImpl.setEffectsSdkColorCorrectionMode(trackId, colorCorrectionMode);
         });
     }
 
