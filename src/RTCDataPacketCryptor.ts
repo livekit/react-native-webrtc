@@ -2,17 +2,7 @@ import * as base64 from 'base64-js';
 import { NativeModules } from 'react-native';
 const { WebRTCModule } = NativeModules;
 
-export enum FrameCryptorState {
-  FrameCryptorStateNew,
-  FrameCryptorStateOk,
-  FrameCryptorStateEncryptionFailed,
-  FrameCryptorStateDecryptionFailed,
-  FrameCryptorStateMissingKey,
-  FrameCryptorStateKeyRatcheted,
-  FrameCryptorStateInternalError,
-}
-
-export interface EncryptedPacket {
+export interface RTCEncryptedPacket {
   payload: Uint8Array,
   iv: Uint8Array,
   keyIndex: number,
@@ -25,7 +15,7 @@ export default class RTCDataPacketCryptor {
         this._id = dataPacketCryptorId;
     }
 
-    async encrypt(participantId: string, keyIndex: number, data: Uint8Array): Promise<EncryptedPacket | null> {
+    async encrypt(participantId: string, keyIndex: number, data: Uint8Array): Promise<RTCEncryptedPacket | null> {
         const params = {
             dataPacketCryptorId: this._id,
             participantId,
@@ -46,7 +36,7 @@ export default class RTCDataPacketCryptor {
         };
     }
 
-    async decrypt(participantId: string, packet: EncryptedPacket): Promise<Uint8Array | null> {
+    async decrypt(participantId: string, packet: RTCEncryptedPacket): Promise<Uint8Array | null> {
         const params = {
             dataPacketCryptorId: this._id,
             participantId,

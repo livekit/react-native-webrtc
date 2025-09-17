@@ -1,4 +1,3 @@
-import * as base64 from 'base64-js';
 import { NativeModules } from 'react-native';
 
 import RTCDataPacketCryptor from './RTCDataPacketCryptor';

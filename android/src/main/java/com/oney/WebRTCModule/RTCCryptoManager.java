@@ -474,7 +474,7 @@ public class RTCCryptoManager {
         if (isBase64Key != null) {
             isBase64 = map.getBoolean(isBase64Key);
         } else {
-            isBase64 = false;
+            isBase64 = true;
         }
 
         byte[] bytes;
