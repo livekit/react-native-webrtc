@@ -277,7 +277,7 @@ public class RTCCryptoManager {
         byte[] newKey = keyProvider.ratchetSharedKey(keyIndex);
 
         WritableMap paramsResult = Arguments.createMap();
-        paramsResult.putString("result", Base64.encodeToString(newKey, Base64.DEFAULT));
+        paramsResult.putString("result", Base64.encodeToString(newKey, Base64.NO_WRAP));
         result.resolve(paramsResult);
     }
 
@@ -293,7 +293,7 @@ public class RTCCryptoManager {
         byte[] key = keyProvider.exportSharedKey(keyIndex);
 
         WritableMap paramsResult = Arguments.createMap();
-        paramsResult.putString("result", Base64.encodeToString(key, Base64.DEFAULT));
+        paramsResult.putString("result", Base64.encodeToString(key, Base64.NO_WRAP));
         result.resolve(paramsResult);
     }
 
@@ -327,7 +327,7 @@ public class RTCCryptoManager {
         byte[] newKey = keyProvider.ratchetKey(participantId, keyIndex);
 
         WritableMap paramsResult = Arguments.createMap();
-        paramsResult.putString("result", Base64.encodeToString(newKey, Base64.DEFAULT));
+        paramsResult.putString("result", Base64.encodeToString(newKey, Base64.NO_WRAP));
         result.resolve(paramsResult);
     }
 
@@ -344,7 +344,7 @@ public class RTCCryptoManager {
         byte[] key = keyProvider.exportKey(participantId, keyIndex);
 
         WritableMap paramsResult = Arguments.createMap();
-        paramsResult.putString("result", Base64.encodeToString(key, Base64.DEFAULT));
+        paramsResult.putString("result", Base64.encodeToString(key, Base64.NO_WRAP));
         result.resolve(paramsResult);
     }
 
@@ -355,7 +355,7 @@ public class RTCCryptoManager {
             result.reject("keyProviderSetSifTrailerFailed", "keyProvider not found", (Throwable) null);
             return;
         }
-        byte[] sifTrailer = Base64.decode(params.getString("sifTrailer"), Base64.DEFAULT);
+        byte[] sifTrailer = Base64.decode(params.getString("sifTrailer"), Base64.NO_WRAP);
         keyProvider.setSifTrailer(sifTrailer);
 
         WritableMap paramsResult = Arguments.createMap();
@@ -388,9 +388,13 @@ public class RTCCryptoManager {
         }
 
         DataPacketCryptorManager cryptor = new DataPacketCryptorManager(frameCryptorAlgorithmFromInt(algorithm), keyProvider);
+
         String dataPacketCryptorId = UUID.randomUUID().toString();
         dataPacketCryptors.put(dataPacketCryptorId, cryptor);
-        result.resolve(dataPacketCryptorId);
+
+        WritableMap paramsResult = Arguments.createMap();
+        paramsResult.putString("dataPacketCryptorId", dataPacketCryptorId);
+        result.resolve(paramsResult);
     }
 
     public void dataPacketCryptorEncrypt(ReadableMap params, @NonNull Promise result) {
@@ -414,8 +418,8 @@ public class RTCCryptoManager {
         }
 
         WritableMap paramsResult = Arguments.createMap();
-        paramsResult.putString("payload", Base64.encodeToString(packet.payload, Base64.DEFAULT));
-        paramsResult.putString("iv", Base64.encodeToString(packet.iv, Base64.DEFAULT));
+        paramsResult.putString("payload", Base64.encodeToString(packet.payload, Base64.NO_WRAP));
+        paramsResult.putString("iv", Base64.encodeToString(packet.iv, Base64.NO_WRAP));
         paramsResult.putInt("keyIndex", packet.keyIndex);
         result.resolve(paramsResult);
     }
@@ -447,7 +451,9 @@ public class RTCCryptoManager {
             return;
         }
 
-        result.resolve(Base64.encode(decryptedData, Base64.DEFAULT));
+        WritableMap paramsResult = Arguments.createMap();
+        paramsResult.putString("data", Base64.encodeToString(decryptedData, Base64.NO_WRAP));
+        result.resolve(paramsResult);
     }
 
     public void dataPacketCryptorDispose(ReadableMap params, @NonNull Promise result) {

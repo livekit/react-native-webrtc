@@ -1,6 +1,8 @@
 import * as base64 from 'base64-js';
 import { NativeModules } from 'react-native';
+import Logger from './Logger';
 const { WebRTCModule } = NativeModules;
+const log = new Logger('pc');
 
 export interface RTCEncryptedPacket {
   payload: Uint8Array,
@@ -25,14 +27,27 @@ export default class RTCDataPacketCryptor {
 
         let result = await WebRTCModule.dataPacketCryptorEncrypt(params);
 
-        if(!result.payload || !result.iv || !result.keyIndex) {
-          return null;
+        if(!result) {
+          log.info("encrypt: result null");
+          return null
+        }
+        if(result.payload === undefined) {
+          log.info("encrypt: payload null");
+          return null
+        }
+        if(result.iv === undefined) {
+          log.info("encrypt: iv null");
+          return null
+        }
+        if(result.keyIndex === undefined) {
+          log.info("encrypt: keyIndex null");
+          return null
         }
 
         return {
-          payload: base64.toByteArray(result['payload']),
-          iv: base64.toByteArray(result['iv']),
-          keyIndex: result['keyIndex']
+          payload: base64.toByteArray(result.payload),
+          iv: base64.toByteArray(result.iv),
+          keyIndex: result.keyIndex
         };
     }
 
@@ -47,10 +62,11 @@ export default class RTCDataPacketCryptor {
 
         let result = await WebRTCModule.dataPacketCryptorDecrypt(params);
         if (!result) {
+          log.info("decrypt: result null");
           return null;
         }
 
-        return base64.toByteArray(result);
+        return base64.toByteArray(result.data);
     }
 
 
@@ -59,6 +75,6 @@ export default class RTCDataPacketCryptor {
             dataPacketCryptorId: this._id,
         };
 
-        return WebRTCModule.dataPacketCryptorDispose(params);
+        await WebRTCModule.dataPacketCryptorDispose(params);
     }
 }

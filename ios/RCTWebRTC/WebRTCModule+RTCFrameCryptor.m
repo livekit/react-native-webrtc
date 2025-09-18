@@ -508,7 +508,9 @@ RCT_EXPORT_METHOD(dataPacketCryptorFactoryCreateDataPacketCryptor
     
     self.dataPacketCryptors[cryptorId] = cryptor;
 
-    resolve(cryptorId);
+    resolve(@{
+        @"dataPacketCryptorId" : cryptorId
+    });
 }
 
 RCT_EXPORT_METHOD(dataPacketCryptorEncrypt
@@ -567,7 +569,9 @@ RCT_EXPORT_METHOD(dataPacketCryptorDecrypt
         return;
     }
 
-    resolve([decryptedData base64EncodedStringWithOptions:0]);
+    resolve(@{
+        @"data" : [decryptedData base64EncodedStringWithOptions:0]
+    });
 }
 RCT_EXPORT_METHOD(dataPacketCryptorDispose
                   : (nonnull NSDictionary *)constraints resolver
