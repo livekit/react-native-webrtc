@@ -15,7 +15,8 @@ public class DataPacketCryptorManager {
     private boolean isDisposed = false;
 
     public DataPacketCryptorManager(FrameCryptorAlgorithm algorithm, FrameCryptorKeyProvider keyProvider) {
-        dataPacketCryptor = DataPacketCryptorFactory.createDataPacketCryptor(FrameCryptorAlgorithm.AES_GCM, keyProvider);
+        dataPacketCryptor =
+                DataPacketCryptorFactory.createDataPacketCryptor(FrameCryptorAlgorithm.AES_GCM, keyProvider);
     }
 
     @Nullable

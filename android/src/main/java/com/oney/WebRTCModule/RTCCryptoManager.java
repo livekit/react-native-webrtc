@@ -383,11 +383,13 @@ public class RTCCryptoManager {
 
         FrameCryptorKeyProvider keyProvider = keyProviders.get(keyProviderId);
         if (keyProvider == null) {
-            result.reject("dataPacketCryptorFactoryCreateDataPacketCryptorFailed", "keyProvider not found", (Throwable) null);
+            result.reject(
+                    "dataPacketCryptorFactoryCreateDataPacketCryptorFailed", "keyProvider not found", (Throwable) null);
             return;
         }
 
-        DataPacketCryptorManager cryptor = new DataPacketCryptorManager(frameCryptorAlgorithmFromInt(algorithm), keyProvider);
+        DataPacketCryptorManager cryptor =
+                new DataPacketCryptorManager(frameCryptorAlgorithmFromInt(algorithm), keyProvider);
 
         String dataPacketCryptorId = UUID.randomUUID().toString();
         dataPacketCryptors.put(dataPacketCryptorId, cryptor);
@@ -438,11 +440,7 @@ public class RTCCryptoManager {
             return;
         }
 
-        DataPacketCryptor.EncryptedPacket packet = new DataPacketCryptor.EncryptedPacket(
-                payload,
-                iv,
-                keyIndex
-        );
+        DataPacketCryptor.EncryptedPacket packet = new DataPacketCryptor.EncryptedPacket(payload, iv, keyIndex);
 
         byte[] decryptedData = cryptor.decrypt(participantId, packet);
 
