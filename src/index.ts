@@ -8,6 +8,8 @@ if (WebRTCModule === null) {
     }`);
 }
 
+import { AudioDeviceModule, AudioEngineMuteMode } from './AudioDeviceModule';
+import { audioDeviceModuleEvents } from './AudioDeviceModuleEvents';
 import { setupNativeEvents } from './EventEmitter';
 import Logger from './Logger';
 import mediaDevices from './MediaDevices';
@@ -68,6 +70,9 @@ export {
     registerGlobals,
     startIOSPIP,
     stopIOSPIP,
+    AudioDeviceModule,
+    AudioEngineMuteMode,
+    audioDeviceModuleEvents,
 };
 
 declare const global: any;
