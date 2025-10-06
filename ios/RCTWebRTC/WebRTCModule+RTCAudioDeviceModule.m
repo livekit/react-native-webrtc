@@ -184,6 +184,50 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleGetDuckingLevel) {
     return @(self.audioDeviceModule.duckingLevel);
 }
 
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleIsRecordingAlwaysPreparedMode) {
+    return @(self.audioDeviceModule.recordingAlwaysPreparedMode);
+}
+
+RCT_EXPORT_METHOD(audioDeviceModuleSetRecordingAlwaysPreparedMode
+                  : (BOOL)enabled resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
+    NSInteger result = [self.audioDeviceModule setRecordingAlwaysPreparedMode:enabled];
+    if (result == 0) {
+        resolve(nil);
+    } else {
+        reject(@"recording_always_prepared_mode_error",
+               [NSString stringWithFormat:@"Failed to set recording always prepared mode: %ld", (long)result],
+               nil);
+    }
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleGetEngineAvailability) {
+    RTCAudioEngineAvailability availability = self.audioDeviceModule.engineAvailability;
+    return @{
+        @"isInputAvailable" : @(availability.isInputAvailable),
+        @"isOutputAvailable" : @(availability.isOutputAvailable)
+    };
+}
+
+RCT_EXPORT_METHOD(audioDeviceModuleSetEngineAvailability
+                  : (NSDictionary *)availabilityDict resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
+    RTCAudioEngineAvailability availability;
+    availability.isInputAvailable = [availabilityDict[@"isInputAvailable"] boolValue];
+    availability.isOutputAvailable = [availabilityDict[@"isOutputAvailable"] boolValue];
+    [self.audioDeviceModule setEngineAvailability:availability];
+    NSInteger result = [self.audioDeviceModule setEngineAvailability:availability];
+    if (result == 0) {
+        resolve(nil);
+    } else {
+        reject(@"engine_availability_error",
+               [NSString stringWithFormat:@"Failed to set engine availability: %ld", (long)result],
+               nil);
+    }
+}
+
 #pragma mark - Observer Delegate Response Methods
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleResolveEngineCreated : (NSInteger)result) {

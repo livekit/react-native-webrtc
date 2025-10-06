@@ -9,6 +9,22 @@ export enum AudioEngineMuteMode {
   InputMixer = 2,
 }
 
+export interface AudioEngineAvailability {
+  isInputAvailable: boolean;
+  isOutputAvailable: boolean;
+}
+
+export const AudioEngineAvailability = {
+    default: {
+        isInputAvailable: true,
+        isOutputAvailable: true,
+    },
+    none: {
+        isInputAvailable: false,
+        isOutputAvailable: false,
+    },
+} as const;
+
 /**
  * Audio Device Module API for controlling audio devices and settings.
  * iOS/macOS only - will throw on Android.
@@ -191,8 +207,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Check if the audio engine is running
-   */
+     * Check if the audio engine is running
+     */
     static isEngineRunning(): boolean {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -202,8 +218,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Set the microphone mute mode
-   */
+     * Set the microphone mute mode
+     */
     static async setMuteMode(mode: AudioEngineMuteMode): Promise<void> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -213,8 +229,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Get the current mute mode
-   */
+     * Get the current mute mode
+     */
     static getMuteMode(): AudioEngineMuteMode {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -224,8 +240,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Enable or disable advanced audio ducking
-   */
+     * Enable or disable advanced audio ducking
+     */
     static setAdvancedDuckingEnabled(enabled: boolean): void {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -235,8 +251,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Check if advanced ducking is enabled
-   */
+     * Check if advanced ducking is enabled
+     */
     static isAdvancedDuckingEnabled(): boolean {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -246,8 +262,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Set the audio ducking level (0-100)
-   */
+     * Set the audio ducking level (0-100)
+     */
     static setDuckingLevel(level: number): void {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -257,13 +273,57 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Get the current ducking level
-   */
+     * Get the current ducking level
+     */
     static getDuckingLevel(): number {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
         }
 
         return WebRTCModule.audioDeviceModuleGetDuckingLevel();
+    }
+
+    /**
+     * Check if recording always prepared mode is enabled
+     */
+    static isRecordingAlwaysPreparedMode(): boolean {
+        if (Platform.OS === 'android') {
+            throw new Error('AudioDeviceModule is only available on iOS/macOS');
+        }
+
+        return WebRTCModule.audioDeviceModuleIsRecordingAlwaysPreparedMode();
+    }
+
+    /**
+     * Enable or disable recording always prepared mode
+     */
+    static setRecordingAlwaysPreparedMode(enabled: boolean): void {
+        if (Platform.OS === 'android') {
+            throw new Error('AudioDeviceModule is only available on iOS/macOS');
+        }
+
+        return WebRTCModule.audioDeviceModuleSetRecordingAlwaysPreparedMode(enabled);
+    }
+
+    /**
+     * Get the current engine availability (input/output availability)
+     */
+    static getEngineAvailability(): AudioEngineAvailability {
+        if (Platform.OS === 'android') {
+            throw new Error('AudioDeviceModule is only available on iOS/macOS');
+        }
+
+        return WebRTCModule.audioDeviceModuleGetEngineAvailability();
+    }
+
+    /**
+     * Set the engine availability (input/output availability)
+     */
+    static setEngineAvailability(availability: AudioEngineAvailability): void {
+        if (Platform.OS === 'android') {
+            throw new Error('AudioDeviceModule is only available on iOS/macOS');
+        }
+
+        return WebRTCModule.audioDeviceModuleSetEngineAvailability(availability);
     }
 }
