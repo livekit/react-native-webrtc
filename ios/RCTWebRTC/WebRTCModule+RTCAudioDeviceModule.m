@@ -15,7 +15,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleStartPlayout
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule startPlayout];
     if (result == 0) {
-        resolve(@{@"success" : @YES});
+        resolve(nil);
     } else {
         reject(@"playout_error", [NSString stringWithFormat:@"Failed to start playout: %ld", (long)result], nil);
     }
@@ -26,7 +26,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleStopPlayout
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule stopPlayout];
     if (result == 0) {
-        resolve(@{@"success" : @YES});
+        resolve(nil);
     } else {
         reject(@"playout_error", [NSString stringWithFormat:@"Failed to stop playout: %ld", (long)result], nil);
     }
@@ -37,7 +37,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleStartRecording
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule startRecording];
     if (result == 0) {
-        resolve(@{@"success" : @YES});
+        resolve(nil);
     } else {
         reject(@"recording_error", [NSString stringWithFormat:@"Failed to start recording: %ld", (long)result], nil);
     }
@@ -48,7 +48,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleStopRecording
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule stopRecording];
     if (result == 0) {
-        resolve(@{@"success" : @YES});
+        resolve(nil);
     } else {
         reject(@"recording_error", [NSString stringWithFormat:@"Failed to stop recording: %ld", (long)result], nil);
     }
@@ -59,7 +59,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleStartLocalRecording
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule initAndStartRecording];
     if (result == 0) {
-        resolve(@{@"success" : @YES});
+        resolve(nil);
     } else {
         reject(
             @"recording_error", [NSString stringWithFormat:@"Failed to start local recording: %ld", (long)result], nil);
@@ -71,7 +71,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleStopLocalRecording
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule stopRecording];
     if (result == 0) {
-        resolve(@{@"success" : @YES});
+        resolve(nil);
     } else {
         reject(
             @"recording_error", [NSString stringWithFormat:@"Failed to stop local recording: %ld", (long)result], nil);
@@ -86,7 +86,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetMicrophoneMuted
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule setMicrophoneMuted:muted];
     if (result == 0) {
-        resolve(@{@"success" : @YES, @"muted" : @(muted)});
+        resolve(nil);
     } else {
         reject(@"mute_error", [NSString stringWithFormat:@"Failed to set microphone mute: %ld", (long)result], nil);
     }
@@ -104,7 +104,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetVoiceProcessingEnabled
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule setVoiceProcessingEnabled:enabled];
     if (result == 0) {
-        resolve(@{@"success" : @YES, @"enabled" : @(enabled)});
+        resolve(nil);
     } else {
         reject(@"voice_processing_error",
                [NSString stringWithFormat:@"Failed to set voice processing: %ld", (long)result],
@@ -127,7 +127,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleIsVoiceProcessingBypasse
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetVoiceProcessingAGCEnabled : (BOOL)enabled) {
     self.audioDeviceModule.voiceProcessingAGCEnabled = enabled;
-    return @{@"success" : @YES, @"enabled" : @(enabled)};
+    return nil;
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleIsVoiceProcessingAGCEnabled) {
@@ -156,7 +156,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetMuteMode
                   : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule setMuteMode:(RTCAudioEngineMuteMode)mode];
     if (result == 0) {
-        resolve(@{@"success" : @YES, @"mode" : @(mode)});
+        resolve(nil);
     } else {
         reject(@"mute_mode_error", [NSString stringWithFormat:@"Failed to set mute mode: %ld", (long)result], nil);
     }
@@ -168,7 +168,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleGetMuteMode) {
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetAdvancedDuckingEnabled : (BOOL)enabled) {
     self.audioDeviceModule.advancedDuckingEnabled = enabled;
-    return @{@"success" : @YES, @"enabled" : @(enabled)};
+    return nil;
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleIsAdvancedDuckingEnabled) {
@@ -177,7 +177,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleIsAdvancedDuckingEnabled
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetDuckingLevel : (NSInteger)level) {
     self.audioDeviceModule.duckingLevel = level;
-    return @{@"success" : @YES, @"level" : @(level)};
+    return nil;
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleGetDuckingLevel) {
