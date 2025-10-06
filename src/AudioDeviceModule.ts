@@ -15,8 +15,8 @@ export enum AudioEngineMuteMode {
  */
 export class AudioDeviceModule {
     /**
-   * Start audio playback
-   */
+     * Start audio playback
+     */
     static async startPlayout(): Promise<{ success: boolean }> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -26,8 +26,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Stop audio playback
-   */
+     * Stop audio playback
+     */
     static async stopPlayout(): Promise<{ success: boolean }> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -37,8 +37,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Start audio recording
-   */
+     * Start audio recording
+     */
     static async startRecording(): Promise<{ success: boolean }> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -48,8 +48,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Stop audio recording
-   */
+     * Stop audio recording
+     */
     static async stopRecording(): Promise<{ success: boolean }> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -59,8 +59,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Initialize and start local audio recording (calls initAndStartRecording)
-   */
+     * Initialize and start local audio recording (calls initAndStartRecording)
+     */
     static async startLocalRecording(): Promise<{ success: boolean }> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -70,8 +70,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Stop local audio recording
-   */
+     * Stop local audio recording
+     */
     static async stopLocalRecording(): Promise<{ success: boolean }> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -81,8 +81,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Mute or unmute the microphone
-   */
+     * Mute or unmute the microphone
+     */
     static async setMicrophoneMuted(muted: boolean): Promise<{ success: boolean; muted: boolean }> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -92,8 +92,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Check if microphone is currently muted
-   */
+     * Check if microphone is currently muted
+     */
     static isMicrophoneMuted(): boolean {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -103,8 +103,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Enable or disable voice processing (requires engine restart)
-   */
+     * Enable or disable voice processing (requires engine restart)
+     */
     static async setVoiceProcessingEnabled(enabled: boolean): Promise<{ success: boolean; enabled: boolean }> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -114,8 +114,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Check if voice processing is enabled
-   */
+     * Check if voice processing is enabled
+     */
     static isVoiceProcessingEnabled(): boolean {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -125,8 +125,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Temporarily bypass voice processing without restarting the engine
-   */
+     * Temporarily bypass voice processing without restarting the engine
+     */
     static setVoiceProcessingBypassed(bypassed: boolean): void {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -136,8 +136,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Check if voice processing is currently bypassed
-   */
+     * Check if voice processing is currently bypassed
+     */
     static isVoiceProcessingBypassed(): boolean {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -147,8 +147,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Enable or disable Automatic Gain Control (AGC)
-   */
+     * Enable or disable Automatic Gain Control (AGC)
+     */
     static setVoiceProcessingAGCEnabled(enabled: boolean): { success: boolean; enabled: boolean } {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -158,8 +158,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Check if AGC is enabled
-   */
+     * Check if AGC is enabled
+     */
     static isVoiceProcessingAGCEnabled(): boolean {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -169,8 +169,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Check if audio is currently playing
-   */
+     * Check if audio is currently playing
+     */
     static isPlaying(): boolean {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
@@ -180,8 +180,8 @@ export class AudioDeviceModule {
     }
 
     /**
-   * Check if audio is currently recording
-   */
+     * Check if audio is currently recording
+     */
     static isRecording(): boolean {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');

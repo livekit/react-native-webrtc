@@ -3,7 +3,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface AudioDeviceModuleObserver : NSObject <RTCAudioDeviceModuleDelegate>
+@interface AudioDeviceModuleObserver : NSObject<RTCAudioDeviceModuleDelegate>
 
 - (instancetype)initWithWebRTCModule:(WebRTCModule *)module;
 

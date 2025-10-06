@@ -10,8 +10,9 @@
 
 #pragma mark - Recording & Playback Control
 
-RCT_EXPORT_METHOD(audioDeviceModuleStartPlayout : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
-                      reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleStartPlayout
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule startPlayout];
     if (result == 0) {
         resolve(@{@"success" : @YES});
@@ -20,8 +21,9 @@ RCT_EXPORT_METHOD(audioDeviceModuleStartPlayout : (RCTPromiseResolveBlock)resolv
     }
 }
 
-RCT_EXPORT_METHOD(audioDeviceModuleStopPlayout : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
-                      reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleStopPlayout
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule stopPlayout];
     if (result == 0) {
         resolve(@{@"success" : @YES});
@@ -30,8 +32,9 @@ RCT_EXPORT_METHOD(audioDeviceModuleStopPlayout : (RCTPromiseResolveBlock)resolve
     }
 }
 
-RCT_EXPORT_METHOD(audioDeviceModuleStartRecording : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
-                      reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleStartRecording
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule startRecording];
     if (result == 0) {
         resolve(@{@"success" : @YES});
@@ -40,8 +43,9 @@ RCT_EXPORT_METHOD(audioDeviceModuleStartRecording : (RCTPromiseResolveBlock)reso
     }
 }
 
-RCT_EXPORT_METHOD(audioDeviceModuleStopRecording : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)
-                      reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleStopRecording
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule stopRecording];
     if (result == 0) {
         resolve(@{@"success" : @YES});
@@ -50,8 +54,9 @@ RCT_EXPORT_METHOD(audioDeviceModuleStopRecording : (RCTPromiseResolveBlock)resol
     }
 }
 
-RCT_EXPORT_METHOD(audioDeviceModuleStartLocalRecording : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleStartLocalRecording
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule initAndStartRecording];
     if (result == 0) {
         resolve(@{@"success" : @YES});
@@ -61,8 +66,9 @@ RCT_EXPORT_METHOD(audioDeviceModuleStartLocalRecording : (RCTPromiseResolveBlock
     }
 }
 
-RCT_EXPORT_METHOD(audioDeviceModuleStopLocalRecording : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleStopLocalRecording
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule stopRecording];
     if (result == 0) {
         resolve(@{@"success" : @YES});
@@ -74,8 +80,10 @@ RCT_EXPORT_METHOD(audioDeviceModuleStopLocalRecording : (RCTPromiseResolveBlock)
 
 #pragma mark - Microphone Control
 
-RCT_EXPORT_METHOD(audioDeviceModuleSetMicrophoneMuted : (BOOL)muted resolver : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleSetMicrophoneMuted
+                  : (BOOL)muted resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule setMicrophoneMuted:muted];
     if (result == 0) {
         resolve(@{@"success" : @YES, @"muted" : @(muted)});
@@ -90,8 +98,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleIsMicrophoneMuted) {
 
 #pragma mark - Voice Processing
 
-RCT_EXPORT_METHOD(audioDeviceModuleSetVoiceProcessingEnabled : (BOOL)enabled resolver : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleSetVoiceProcessingEnabled
+                  : (BOOL)enabled resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule setVoiceProcessingEnabled:enabled];
     if (result == 0) {
         resolve(@{@"success" : @YES, @"enabled" : @(enabled)});
@@ -140,8 +150,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleIsEngineRunning) {
 
 #pragma mark - Advanced Features
 
-RCT_EXPORT_METHOD(audioDeviceModuleSetMuteMode : (NSInteger)mode resolver : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(audioDeviceModuleSetMuteMode
+                  : (NSInteger)mode resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSInteger result = [self.audioDeviceModule setMuteMode:(RTCAudioEngineMuteMode)mode];
     if (result == 0) {
         resolve(@{@"success" : @YES, @"mode" : @(mode)});

@@ -7,10 +7,10 @@
 #import <React/RCTLog.h>
 #import <React/RCTUtils.h>
 
+#import "AudioDeviceModuleObserver.h"
 #import "WebRTCModule+RTCPeerConnection.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
-#import "AudioDeviceModuleObserver.h"
 
 @interface WebRTCModule ()
 @end
@@ -72,18 +72,18 @@
         RCTLogInfo(@"Using video decoder factory: %@", NSStringFromClass([decoderFactory class]));
 
         if (audioDevice == nil) {
-          RCTLogInfo(@"Using audio processing module: %@", NSStringFromClass([audioProcessingModule class]));
-          _peerConnectionFactory =
-              [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:RTCAudioDeviceModuleTypeAudioEngine
-                                                        bypassVoiceProcessing:NO
-                                                               encoderFactory:encoderFactory
-                                                               decoderFactory:decoderFactory
-                                                        audioProcessingModule:audioProcessingModule];
+            RCTLogInfo(@"Using audio processing module: %@", NSStringFromClass([audioProcessingModule class]));
+            _peerConnectionFactory =
+                [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:RTCAudioDeviceModuleTypeAudioEngine
+                                                          bypassVoiceProcessing:NO
+                                                                 encoderFactory:encoderFactory
+                                                                 decoderFactory:decoderFactory
+                                                          audioProcessingModule:audioProcessingModule];
         } else {
-          RCTLogInfo(@"Using audio device: %@", NSStringFromClass([audioDevice class]));
-          _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:encoderFactory
-                                                                             decoderFactory:decoderFactory
-                                                                                audioDevice:audioDevice];
+            RCTLogInfo(@"Using audio device: %@", NSStringFromClass([audioDevice class]));
+            _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:encoderFactory
+                                                                               decoderFactory:decoderFactory
+                                                                                  audioDevice:audioDevice];
         }
 
         _peerConnections = [NSMutableDictionary new];
