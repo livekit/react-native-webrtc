@@ -106,8 +106,5 @@ function registerGlobals(): void {
     global.RTCErrorEvent = RTCErrorEvent;
 
     // Ensure audioDeviceModuleEvents is initialized and event listeners are registered
-    // This forces the constructor to run and set up native event listeners.
-    // We use void operator to explicitly indicate we're intentionally evaluating the expression
-    // without using its value, which prevents tree-shaking from removing this reference.
-    void audioDeviceModuleEvents;
+    audioDeviceModuleEvents.setupListeners();
 }

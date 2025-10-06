@@ -46,7 +46,7 @@ class AudioDeviceModuleEventEmitter {
     private didDisableEngineHandler: AudioEngineEventHandler | null = null;
     private willReleaseEngineHandler: AudioEngineEventNoParamsHandler | null = null;
 
-    constructor() {
+    public setupListeners() {
         if (Platform.OS !== 'android' && WebRTCModule) {
             this.eventEmitter = new NativeEventEmitter(WebRTCModule);
 
@@ -158,9 +158,10 @@ class AudioDeviceModuleEventEmitter {
             });
         }
     }
+
     /**
-   * Subscribe to speech activity events (started/ended)
-   */
+     * Subscribe to speech activity events (started/ended)
+     */
     addSpeechActivityListener(listener: (data: SpeechActivityEventData) => void) {
         if (!this.eventEmitter) {
             throw new Error('AudioDeviceModuleEvents is only available on iOS/macOS');
@@ -170,8 +171,8 @@ class AudioDeviceModuleEventEmitter {
     }
 
     /**
-   * Subscribe to devices updated event (input/output devices changed)
-   */
+     * Subscribe to devices updated event (input/output devices changed)
+     */
     addDevicesUpdatedListener(listener: () => void) {
         if (!this.eventEmitter) {
             throw new Error('AudioDeviceModuleEvents is only available on iOS/macOS');
@@ -181,49 +182,49 @@ class AudioDeviceModuleEventEmitter {
     }
 
     /**
-   * Set handler for engine created delegate - MUST return 0 for success or error code
-   * This handler blocks the native thread until it returns
-   */
+     * Set handler for engine created delegate - MUST return 0 for success or error code
+     * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
+     */
     setEngineCreatedHandler(handler: AudioEngineEventNoParamsHandler | null) {
         this.engineCreatedHandler = handler;
     }
 
     /**
-   * Set handler for will enable engine delegate - MUST return 0 for success or error code
-   * This handler blocks the native thread until it returns
-   */
+     * Set handler for will enable engine delegate - MUST return 0 for success or error code
+     * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
+     */
     setWillEnableEngineHandler(handler: AudioEngineEventHandler | null) {
         this.willEnableEngineHandler = handler;
     }
 
     /**
-   * Set handler for will start engine delegate - MUST return 0 for success or error code
-   * This handler blocks the native thread until it returns
-   */
+     * Set handler for will start engine delegate - MUST return 0 for success or error code
+     * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
+     */
     setWillStartEngineHandler(handler: AudioEngineEventHandler | null) {
         this.willStartEngineHandler = handler;
     }
 
     /**
-   * Set handler for did stop engine delegate - MUST return 0 for success or error code
-   * This handler blocks the native thread until it returns
-   */
+     * Set handler for did stop engine delegate - MUST return 0 for success or error code
+     * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
+     */
     setDidStopEngineHandler(handler: AudioEngineEventHandler | null) {
         this.didStopEngineHandler = handler;
     }
 
     /**
-   * Set handler for did disable engine delegate - MUST return 0 for success or error code
-   * This handler blocks the native thread until it returns
-   */
+     * Set handler for did disable engine delegate - MUST return 0 for success or error code
+     * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
+     */
     setDidDisableEngineHandler(handler: AudioEngineEventHandler | null) {
         this.didDisableEngineHandler = handler;
     }
 
     /**
-   * Set handler for will release engine delegate - MUST return 0 for success or error code
-   * This handler blocks the native thread until it returns
-   */
+     * Set handler for will release engine delegate
+     * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
+     */
     setWillReleaseEngineHandler(handler: AudioEngineEventNoParamsHandler | null) {
         this.willReleaseEngineHandler = handler;
     }
