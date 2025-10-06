@@ -52,23 +52,6 @@ RCT_EXPORT_METHOD(audioDeviceModuleStopRecording : (RCTPromiseResolveBlock)resol
 
 RCT_EXPORT_METHOD(audioDeviceModuleStartLocalRecording : (RCTPromiseResolveBlock)
                       resolve rejecter : (RCTPromiseRejectBlock)reject) {
-  NSError *error = nil;
-  AVAudioSession *session = [AVAudioSession sharedInstance];
-
-  // Set category to PlayAndRecord with some options
-  [session setCategory:AVAudioSessionCategoryPlayAndRecord
-           withOptions:(AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth)
-                 error:&error];
-  if (error) {
-    NSLog(@"Error setting category: %@", error);
-  }
-
-  // Activate the session
-  [session setActive:YES error:&error];
-  if (error) {
-    NSLog(@"Error activating session: %@", error);
-  }
-
   NSInteger result = [self.audioDeviceModule initAndStartRecording];
   if (result == 0) {
     resolve(@{@"success" : @YES});
