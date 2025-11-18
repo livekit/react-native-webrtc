@@ -154,6 +154,15 @@ public class WebRTCView extends ViewGroup {
      */
     private boolean onDimensionsChangeEnabled = false;
 
+    /**
+     * Custom video frame transformation values
+     * These affect how the video is rendered INSIDE the SurfaceView
+     */
+    private float customScale = 1.0f;
+    private float customTranslateX = 0f; // as fraction of width (-1 to 1)
+    private float customTranslateY = 0f; // as fraction of height (-1 to 1)
+    private boolean useCustomTransform = false;
+
     public WebRTCView(Context context) {
         super(context);
 
@@ -308,37 +317,78 @@ public class WebRTCView extends ViewGroup {
                 scalingType = this.scalingType;
             }
 
-            switch (scalingType) {
-                case SCALE_ASPECT_FILL:
-                    // Fill this ViewGroup with surfaceViewRenderer and the latter
-                    // will take care of filling itself with the video similarly to
-                    // the cover value the CSS property object-fit.
-                    r = width;
-                    l = 0;
-                    b = height;
-                    t = 0;
-                    break;
-                case SCALE_ASPECT_FIT:
-                default:
-                    // Lay surfaceViewRenderer out inside this ViewGroup in accord
-                    // with the contain value of the CSS property object-fit.
-                    // SurfaceViewRenderer will fill itself with the video similarly
-                    // to the cover or contain value of the CSS property object-fit
-                    // (which will not matter, eventually).
-                    if (frameHeight == 0 || frameWidth == 0) {
-                        l = t = r = b = 0;
-                    } else {
-                        float frameAspectRatio = (frameRotation % 180 == 0) ? frameWidth / (float) frameHeight
-                                                                            : frameHeight / (float) frameWidth;
-                        Point frameDisplaySize =
-                                RendererCommon.getDisplaySize(scalingType, frameAspectRatio, width, height);
+            if (useCustomTransform && frameHeight > 0 && frameWidth > 0) {
+                // Custom transformation mode
+                // We keep SCALE_ASPECT_FIT (contain) so video is not cropped
+                // and we control the size/position via layout bounds
+                surfaceViewRenderer.setScalingType(ScalingType.SCALE_ASPECT_FIT);
+                
+                float frameAspectRatio = (frameRotation % 180 == 0) ? frameWidth / (float) frameHeight
+                                                                    : frameHeight / (float) frameWidth;
+                
+                // Start with SCALE_ASPECT_FIT size (100% visible, no cropping)
+                Point baseSize = RendererCommon.getDisplaySize(
+                    ScalingType.SCALE_ASPECT_FIT, frameAspectRatio, width, height);
+                
+                // Apply custom scale to the fitted size
+                int scaledWidth = (int)(baseSize.x * customScale);
+                int scaledHeight = (int)(baseSize.y * customScale);
+                
+                // Calculate base position (centered)
+                int centerX = width / 2;
+                int centerY = height / 2;
+                
+                // Apply custom translation (as fraction of container size)
+                int offsetX = (int)(width * customTranslateX);
+                int offsetY = (int)(height * customTranslateY);
+                
+                // Calculate final bounds
+                l = centerX - scaledWidth / 2 + offsetX;
+                t = centerY - scaledHeight / 2 + offsetY;
+                r = l + scaledWidth;
+                b = t + scaledHeight;
+                
+                // Ensure we don't go outside container bounds (optional)
+                // This can be removed if we want to allow partial visibility
+                /*
+                l = Math.max(0, Math.min(l, width));
+                t = Math.max(0, Math.min(t, height));
+                r = Math.max(0, Math.min(r, width));
+                b = Math.max(0, Math.min(b, height));
+                */
+            } else {
+                switch (scalingType) {
+                    case SCALE_ASPECT_FILL:
+                        // Fill this ViewGroup with surfaceViewRenderer and the latter
+                        // will take care of filling itself with the video similarly to
+                        // the cover value the CSS property object-fit.
+                        r = width;
+                        l = 0;
+                        b = height;
+                        t = 0;
+                        break;
+                    case SCALE_ASPECT_FIT:
+                    default:
+                        // Lay surfaceViewRenderer out inside this ViewGroup in accord
+                        // with the contain value of the CSS property object-fit.
+                        // SurfaceViewRenderer will fill itself with the video similarly
+                        // to the cover or contain value of the CSS property object-fit
+                        // (which will not matter, eventually).
+                        if (frameHeight == 0 || frameWidth == 0) {
+                            l = t = r = b = 0;
+                        } else {
+                            float frameAspectRatio = (frameRotation % 180 == 0) ? frameWidth / (float) frameHeight
+                                                                                : frameHeight / (float) frameWidth;
+                            Point frameDisplaySize =
+                                    RendererCommon.getDisplaySize(scalingType, frameAspectRatio, width, height);
 
-                        l = (width - frameDisplaySize.x) / 2;
-                        t = (height - frameDisplaySize.y) / 2;
-                        r = l + frameDisplaySize.x;
-                        b = t + frameDisplaySize.y;
-                    }
-                    break;
+                            l = (width - frameDisplaySize.x) / 2;
+                            t = (height - frameDisplaySize.y) / 2;
+                            r = l + frameDisplaySize.x;
+                            b = t + frameDisplaySize.y;
+                        }
+                        break;
+                }
             }
         }
         surfaceViewRenderer.layout(l, t, r, b);
@@ -579,5 +629,53 @@ public class WebRTCView extends ViewGroup {
      */
     public void setOnDimensionsChange(boolean enabled) {
         this.onDimensionsChangeEnabled = enabled;
+    }
+
+    /**
+     * Sets custom scale for video rendering.
+     *
+     * @param scale The scale factor (1.0 = original size).
+     */
+    public void setCustomScale(float scale) {
+        if (this.customScale != scale) {
+            this.customScale = scale;
+            requestSurfaceViewRendererLayout();
+        }
+    }
+
+    /**
+     * Sets custom X translation for video rendering.
+     *
+     * @param translateX Translation as fraction of container width (-1 to 1).
+     */
+    public void setCustomTranslateX(float translateX) {
+        if (this.customTranslateX != translateX) {
+            this.customTranslateX = translateX;
+            requestSurfaceViewRendererLayout();
+        }
+    }
+
+    /**
+     * Sets custom Y translation for video rendering.
+     *
+     * @param translateY Translation as fraction of container height (-1 to 1).
+     */
+    public void setCustomTranslateY(float translateY) {
+        if (this.customTranslateY != translateY) {
+            this.customTranslateY = translateY;
+            requestSurfaceViewRendererLayout();
+        }
+    }
+
+    /**
+     * Enables or disables custom transformation mode.
+     *
+     * @param enabled Whether custom transformations should be used.
+     */
+    public void setUseCustomTransform(boolean enabled) {
+        if (this.useCustomTransform != enabled) {
+            this.useCustomTransform = enabled;
+            requestSurfaceViewRendererLayout();
+        }
     }
 }
