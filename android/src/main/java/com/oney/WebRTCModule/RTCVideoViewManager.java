@@ -87,6 +87,50 @@ public class RTCVideoViewManager extends SimpleViewManager<WebRTCView> {
         view.setOnDimensionsChange(onDimensionsChange);
     }
 
+    /**
+     * Sets custom scale for video rendering.
+     *
+     * @param view The {@code WebRTCView} on which the scale is to be set.
+     * @param scale The scale factor (1.0 = original size).
+     */
+    @ReactProp(name = "customScale")
+    public void setCustomScale(WebRTCView view, float scale) {
+        view.setCustomScale(scale);
+    }
+
+    /**
+     * Sets custom X translation for video rendering.
+     *
+     * @param view The {@code WebRTCView} on which the translation is to be set.
+     * @param translateX Translation as fraction of container width (-1 to 1).
+     */
+    @ReactProp(name = "customTranslateX")
+    public void setCustomTranslateX(WebRTCView view, float translateX) {
+        view.setCustomTranslateX(translateX);
+    }
+
+    /**
+     * Sets custom Y translation for video rendering.
+     *
+     * @param view The {@code WebRTCView} on which the translation is to be set.
+     * @param translateY Translation as fraction of container height (-1 to 1).
+     */
+    @ReactProp(name = "customTranslateY")
+    public void setCustomTranslateY(WebRTCView view, float translateY) {
+        view.setCustomTranslateY(translateY);
+    }
+
+    /**
+     * Enables or disables custom transformation mode.
+     *
+     * @param view The {@code WebRTCView} on which the mode is to be set.
+     * @param enabled Whether custom transformations should be used.
+     */
+    @ReactProp(name = "useCustomTransform")
+    public void setUseCustomTransform(WebRTCView view, boolean enabled) {
+        view.setUseCustomTransform(enabled);
+    }
+
     @Override
     public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
         Map<String, Object> eventTypeConstants = new HashMap<>();
