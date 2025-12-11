@@ -343,19 +343,17 @@ public class WebRTCView extends ViewGroup {
                 int offsetY = (int)(height * customTranslateY);
                 
                 // Calculate final bounds
-                l = centerX - scaledWidth / 2 + offsetX;
-                t = centerY - scaledHeight / 2 + offsetY;
-                r = l + scaledWidth;
-                b = t + scaledHeight;
-                
-                // Ensure we don't go outside container bounds (optional)
-                // This can be removed if we want to allow partial visibility
-                /*
-                l = Math.max(0, Math.min(l, width));
-                t = Math.max(0, Math.min(t, height));
-                r = Math.max(0, Math.min(r, width));
-                b = Math.max(0, Math.min(b, height));
-                */
+                int rawL = centerX - scaledWidth / 2 + offsetX;
+                int rawT = centerY - scaledHeight / 2 + offsetY;
+                int rawR = rawL + scaledWidth;
+                int rawB = rawT + scaledHeight;
+
+                // Clamp bounds to container to prevent overflow onto other views
+                // SurfaceView ignores parent's overflow:hidden, so we must clip here
+                l = Math.max(0, rawL);
+                t = Math.max(0, rawT);
+                r = Math.min(width, rawR);
+                b = Math.min(height, rawB);
             } else {
                 switch (scalingType) {
                     case SCALE_ASPECT_FILL:
