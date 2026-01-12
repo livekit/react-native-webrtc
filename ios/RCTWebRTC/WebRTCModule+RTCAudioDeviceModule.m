@@ -217,7 +217,6 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetEngineAvailability
     RTCAudioEngineAvailability availability;
     availability.isInputAvailable = [availabilityDict[@"isInputAvailable"] boolValue];
     availability.isOutputAvailable = [availabilityDict[@"isOutputAvailable"] boolValue];
-    [self.audioDeviceModule setEngineAvailability:availability];
     NSInteger result = [self.audioDeviceModule setEngineAvailability:availability];
     if (result == 0) {
         resolve(nil);
