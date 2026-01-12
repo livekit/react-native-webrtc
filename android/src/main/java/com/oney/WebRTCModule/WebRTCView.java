@@ -317,36 +317,55 @@ public class WebRTCView extends ViewGroup {
                 scalingType = this.scalingType;
             }
 
+            Log.w(TAG, "[CustomTransform] onLayout: useCustomTransform=" + useCustomTransform +
+                ", frameWidth=" + frameWidth + ", frameHeight=" + frameHeight +
+                ", containerWidth=" + width + ", containerHeight=" + height);
+
             if (useCustomTransform && frameHeight > 0 && frameWidth > 0) {
+                Log.w(TAG, "[CustomTransform] onLayout: ENTERING custom transform branch");
+                Log.w(TAG, "[CustomTransform] onLayout: customScale=" + customScale +
+                    ", customTranslateX=" + customTranslateX + ", customTranslateY=" + customTranslateY);
+
                 // Custom transformation mode
                 // We keep SCALE_ASPECT_FIT (contain) so video is not cropped
                 // and we control the size/position via layout bounds
-                surfaceViewRenderer.setScalingType(ScalingType.SCALE_ASPECT_FIT);
-                
+                try {
+                    surfaceViewRenderer.setScalingType(ScalingType.SCALE_ASPECT_FIT);
+                    Log.w(TAG, "[CustomTransform] onLayout: setScalingType(SCALE_ASPECT_FIT) success");
+                } catch (Exception e) {
+                    Log.w(TAG, "[CustomTransform] onLayout: setScalingType FAILED: " + e.getMessage());
+                }
+
                 float frameAspectRatio = (frameRotation % 180 == 0) ? frameWidth / (float) frameHeight
                                                                     : frameHeight / (float) frameWidth;
-                
+                Log.w(TAG, "[CustomTransform] onLayout: frameRotation=" + frameRotation + ", frameAspectRatio=" + frameAspectRatio);
+
                 // Start with SCALE_ASPECT_FIT size (100% visible, no cropping)
                 Point baseSize = RendererCommon.getDisplaySize(
                     ScalingType.SCALE_ASPECT_FIT, frameAspectRatio, width, height);
-                
+                Log.w(TAG, "[CustomTransform] onLayout: baseSize.x=" + baseSize.x + ", baseSize.y=" + baseSize.y);
+
                 // Apply custom scale to the fitted size
                 int scaledWidth = (int)(baseSize.x * customScale);
                 int scaledHeight = (int)(baseSize.y * customScale);
-                
+                Log.w(TAG, "[CustomTransform] onLayout: scaledWidth=" + scaledWidth + ", scaledHeight=" + scaledHeight);
+
                 // Calculate base position (centered)
                 int centerX = width / 2;
                 int centerY = height / 2;
-                
+                Log.w(TAG, "[CustomTransform] onLayout: centerX=" + centerX + ", centerY=" + centerY);
+
                 // Apply custom translation (as fraction of container size)
                 int offsetX = (int)(width * customTranslateX);
                 int offsetY = (int)(height * customTranslateY);
-                
+                Log.w(TAG, "[CustomTransform] onLayout: offsetX=" + offsetX + ", offsetY=" + offsetY);
+
                 // Calculate final bounds
                 int rawL = centerX - scaledWidth / 2 + offsetX;
                 int rawT = centerY - scaledHeight / 2 + offsetY;
                 int rawR = rawL + scaledWidth;
                 int rawB = rawT + scaledHeight;
+                Log.w(TAG, "[CustomTransform] onLayout: raw bounds: L=" + rawL + ", T=" + rawT + ", R=" + rawR + ", B=" + rawB);
 
                 // Clamp bounds to container to prevent overflow onto other views
                 // SurfaceView ignores parent's overflow:hidden, so we must clip here
@@ -354,7 +373,10 @@ public class WebRTCView extends ViewGroup {
                 t = Math.max(0, rawT);
                 r = Math.min(width, rawR);
                 b = Math.min(height, rawB);
+                Log.w(TAG, "[CustomTransform] onLayout: clamped bounds: l=" + l + ", t=" + t + ", r=" + r + ", b=" + b);
             } else {
+                Log.w(TAG, "[CustomTransform] onLayout: NOT using custom transform (useCustomTransform=" + useCustomTransform +
+                    ", frameHeight=" + frameHeight + ", frameWidth=" + frameWidth + ")");
                 switch (scalingType) {
                     case SCALE_ASPECT_FILL:
                         // Fill this ViewGroup with surfaceViewRenderer and the latter
@@ -389,7 +411,13 @@ public class WebRTCView extends ViewGroup {
                 }
             }
         }
-        surfaceViewRenderer.layout(l, t, r, b);
+        Log.w(TAG, "[CustomTransform] onLayout: FINAL surfaceViewRenderer.layout(l=" + l + ", t=" + t + ", r=" + r + ", b=" + b + ")");
+        try {
+            surfaceViewRenderer.layout(l, t, r, b);
+            Log.w(TAG, "[CustomTransform] onLayout: surfaceViewRenderer.layout() SUCCESS");
+        } catch (Exception e) {
+            Log.w(TAG, "[CustomTransform] onLayout: surfaceViewRenderer.layout() FAILED: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -432,12 +460,16 @@ public class WebRTCView extends ViewGroup {
      */
     @SuppressLint("WrongCall")
     private void requestSurfaceViewRendererLayout() {
+        Log.w(TAG, "[CustomTransform] requestSurfaceViewRendererLayout called, useCustomTransform=" + useCustomTransform);
         // Google/WebRTC just call requestLayout() on surfaceViewRenderer when
         // they change the value of its mirror or surfaceType property.
         surfaceViewRenderer.requestLayout();
         // The above is not enough though when the video frame's dimensions or
         // rotation change. The following will suffice.
-        if (!ViewCompat.isInLayout(this)) {
+        boolean isInLayout = ViewCompat.isInLayout(this);
+        Log.w(TAG, "[CustomTransform] requestSurfaceViewRendererLayout: isInLayout=" + isInLayout);
+        if (!isInLayout) {
+            Log.w(TAG, "[CustomTransform] requestSurfaceViewRendererLayout: calling onLayout directly");
             onLayout(
                     /* changed */ false, getLeft(), getTop(), getRight(), getBottom());
         }
@@ -635,8 +667,10 @@ public class WebRTCView extends ViewGroup {
      * @param scale The scale factor (1.0 = original size).
      */
     public void setCustomScale(float scale) {
+        Log.w(TAG, "[CustomTransform] setCustomScale called: scale=" + scale + ", previous=" + this.customScale);
         if (this.customScale != scale) {
             this.customScale = scale;
+            Log.w(TAG, "[CustomTransform] setCustomScale: value changed, requesting layout");
             requestSurfaceViewRendererLayout();
         }
     }
@@ -647,8 +681,10 @@ public class WebRTCView extends ViewGroup {
      * @param translateX Translation as fraction of container width (-1 to 1).
      */
     public void setCustomTranslateX(float translateX) {
+        Log.w(TAG, "[CustomTransform] setCustomTranslateX called: translateX=" + translateX + ", previous=" + this.customTranslateX);
         if (this.customTranslateX != translateX) {
             this.customTranslateX = translateX;
+            Log.w(TAG, "[CustomTransform] setCustomTranslateX: value changed, requesting layout");
             requestSurfaceViewRendererLayout();
         }
     }
@@ -659,8 +695,10 @@ public class WebRTCView extends ViewGroup {
      * @param translateY Translation as fraction of container height (-1 to 1).
      */
     public void setCustomTranslateY(float translateY) {
+        Log.w(TAG, "[CustomTransform] setCustomTranslateY called: translateY=" + translateY + ", previous=" + this.customTranslateY);
         if (this.customTranslateY != translateY) {
             this.customTranslateY = translateY;
+            Log.w(TAG, "[CustomTransform] setCustomTranslateY: value changed, requesting layout");
             requestSurfaceViewRendererLayout();
         }
     }
@@ -671,8 +709,10 @@ public class WebRTCView extends ViewGroup {
      * @param enabled Whether custom transformations should be used.
      */
     public void setUseCustomTransform(boolean enabled) {
+        Log.w(TAG, "[CustomTransform] setUseCustomTransform called: enabled=" + enabled + ", previous=" + this.useCustomTransform);
         if (this.useCustomTransform != enabled) {
             this.useCustomTransform = enabled;
+            Log.w(TAG, "[CustomTransform] setUseCustomTransform: value changed to " + enabled + ", requesting layout");
             requestSurfaceViewRendererLayout();
         }
     }

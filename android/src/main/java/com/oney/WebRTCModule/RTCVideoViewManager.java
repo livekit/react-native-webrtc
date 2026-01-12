@@ -1,5 +1,7 @@
 package com.oney.WebRTCModule;
 
+import android.util.Log;
+
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
@@ -11,6 +13,7 @@ import java.util.Map;
 
 public class RTCVideoViewManager extends SimpleViewManager<WebRTCView> {
     private static final String REACT_CLASS = "RTCVideoView";
+    private static final String TAG = WebRTCModule.TAG;
 
     @Override
     public String getName() {
@@ -95,6 +98,7 @@ public class RTCVideoViewManager extends SimpleViewManager<WebRTCView> {
      */
     @ReactProp(name = "customScale")
     public void setCustomScale(WebRTCView view, float scale) {
+        Log.w(TAG, "[CustomTransform] RTCVideoViewManager.setCustomScale: scale=" + scale);
         view.setCustomScale(scale);
     }
 
@@ -106,6 +110,7 @@ public class RTCVideoViewManager extends SimpleViewManager<WebRTCView> {
      */
     @ReactProp(name = "customTranslateX")
     public void setCustomTranslateX(WebRTCView view, float translateX) {
+        Log.w(TAG, "[CustomTransform] RTCVideoViewManager.setCustomTranslateX: translateX=" + translateX);
         view.setCustomTranslateX(translateX);
     }
 
@@ -117,6 +122,7 @@ public class RTCVideoViewManager extends SimpleViewManager<WebRTCView> {
      */
     @ReactProp(name = "customTranslateY")
     public void setCustomTranslateY(WebRTCView view, float translateY) {
+        Log.w(TAG, "[CustomTransform] RTCVideoViewManager.setCustomTranslateY: translateY=" + translateY);
         view.setCustomTranslateY(translateY);
     }
 
@@ -128,6 +134,7 @@ public class RTCVideoViewManager extends SimpleViewManager<WebRTCView> {
      */
     @ReactProp(name = "useCustomTransform")
     public void setUseCustomTransform(WebRTCView view, boolean enabled) {
+        Log.w(TAG, "[CustomTransform] RTCVideoViewManager.setUseCustomTransform: enabled=" + enabled);
         view.setUseCustomTransform(enabled);
     }
 
