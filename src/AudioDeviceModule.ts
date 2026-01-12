@@ -297,7 +297,7 @@ export class AudioDeviceModule {
     /**
      * Enable or disable recording always prepared mode
      */
-    static setRecordingAlwaysPreparedMode(enabled: boolean): void {
+    static async setRecordingAlwaysPreparedMode(enabled: boolean): Promise<void> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
         }
@@ -319,7 +319,7 @@ export class AudioDeviceModule {
     /**
      * Set the engine availability (input/output availability)
      */
-    static setEngineAvailability(availability: AudioEngineAvailability): void {
+    static async setEngineAvailability(availability: AudioEngineAvailability): Promise<void> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
         }
