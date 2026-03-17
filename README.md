@@ -43,7 +43,7 @@ Software encode/decode factories have been enabled by default.
 
 ## WebRTC Revision
 
-* Currently used revision: [M125](https://github.com/webrtc-sdk/webrtc/tree/m125_release)
+* Currently used revision: [M144](https://github.com/webrtc-sdk/webrtc/tree/m144_release)
 * Supported architectures
   * Android: armeabi-v7a, arm64-v8a, x86, x86_64
   * iOS: arm64, x86_64

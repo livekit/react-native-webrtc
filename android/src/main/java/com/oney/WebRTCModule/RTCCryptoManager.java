@@ -15,6 +15,7 @@ import org.webrtc.DataPacketCryptor;
 import org.webrtc.FrameCryptor;
 import org.webrtc.FrameCryptorAlgorithm;
 import org.webrtc.FrameCryptorFactory;
+import org.webrtc.FrameCryptorKeyDerivationAlgorithm;
 import org.webrtc.FrameCryptorKeyProvider;
 import org.webrtc.RtpReceiver;
 import org.webrtc.RtpSender;
@@ -89,6 +90,17 @@ public class RTCCryptoManager {
             //     return FrameCryptorAlgorithm.AES_CBC;
             default:
                 return FrameCryptorAlgorithm.AES_GCM;
+        }
+    }
+
+    private FrameCryptorKeyDerivationAlgorithm keyDerivationAlgorithmFromInt(int algorithm) {
+        switch (algorithm) {
+            case 0:
+                return FrameCryptorKeyDerivationAlgorithm.PBKDF2;
+            case 1:
+                return FrameCryptorKeyDerivationAlgorithm.HKDF;
+            default:
+                return FrameCryptorKeyDerivationAlgorithm.PBKDF2;
         }
     }
 
@@ -238,13 +250,16 @@ public class RTCCryptoManager {
         int keyRingSize = (int) keyProviderOptions.getInt("keyRingSize");
         boolean discardFrameWhenCryptorNotReady =
                 (boolean) keyProviderOptions.getBoolean("discardFrameWhenCryptorNotReady");
+        int keyDerivationAlgorithm = keyProviderOptions.hasKey("keyDerivationAlgorithm")
+                ? keyProviderOptions.getInt("keyDerivationAlgorithm") : 0;
         FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey,
                 ratchetSalt,
                 ratchetWindowSize,
                 uncryptedMagicBytes,
                 failureTolerance,
                 keyRingSize,
-                discardFrameWhenCryptorNotReady);
+                discardFrameWhenCryptorNotReady,
+                keyDerivationAlgorithmFromInt(keyDerivationAlgorithm));
         keyProviders.put(keyProviderId, keyProvider);
         return keyProviderId;
     }

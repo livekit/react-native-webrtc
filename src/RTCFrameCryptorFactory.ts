@@ -12,6 +12,11 @@ export enum RTCFrameCryptorAlgorithm {
   // kAesCbc = 1,
 }
 
+export enum RTCKeyDerivationAlgorithm {
+  PBKDF2 = 0,
+  HKDF = 1,
+}
+
 export type RTCKeyProviderOptions = {
   sharedKey: boolean,
   ratchetSalt: string | Uint8Array,
@@ -19,7 +24,8 @@ export type RTCKeyProviderOptions = {
   uncryptedMagicBytes?: Uint8Array,
   failureTolerance?: number,
   keyRingSize?: number,
-  discardFrameWhenCryptorNotReady?: boolean
+  discardFrameWhenCryptorNotReady?: boolean,
+  keyDerivationAlgorithm?: RTCKeyDerivationAlgorithm,
 }
 
 export default class RTCFrameCryptorFactory {
@@ -74,7 +80,8 @@ export default class RTCFrameCryptorFactory {
             'ratchetWindowSize': options.ratchetWindowSize,
             'failureTolerance': options.failureTolerance ?? -1,
             'keyRingSize': options.keyRingSize ?? 16,
-            'discardFrameWhenCryptorNotReady': options.discardFrameWhenCryptorNotReady ?? false
+            'discardFrameWhenCryptorNotReady': options.discardFrameWhenCryptorNotReady ?? false,
+            'keyDerivationAlgorithm': options.keyDerivationAlgorithm ?? 0
         };
 
         if (typeof options.ratchetSalt === 'string') {
