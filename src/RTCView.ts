@@ -12,6 +12,15 @@ export interface RTCVideoViewProps extends ViewProps {
   customTranslateY?: number; // as fraction of height (-1 to 1)
   useCustomTransform?: boolean;
   /**
+   * Android only. When true, uses TextureViewRenderer instead of
+   * SurfaceViewRenderer. TextureView renders in the normal View hierarchy
+   * and supports borderRadius, overflow:hidden, and other clipping.
+   * Slightly higher GPU overhead but negligible for small views.
+   *
+   * Defaults to false (SurfaceView).
+   */
+  useTextureView?: boolean;
+  /**
    * Indicates whether the video specified by {@link #streamURL} should be
    * mirrored during rendering. Commonly, applications choose to mirror the
    * user-facing camera.
