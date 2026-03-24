@@ -251,7 +251,8 @@ public class RTCCryptoManager {
         boolean discardFrameWhenCryptorNotReady =
                 (boolean) keyProviderOptions.getBoolean("discardFrameWhenCryptorNotReady");
         int keyDerivationAlgorithm = keyProviderOptions.hasKey("keyDerivationAlgorithm")
-                ? keyProviderOptions.getInt("keyDerivationAlgorithm") : 0;
+                ? keyProviderOptions.getInt("keyDerivationAlgorithm")
+                : 0;
         FrameCryptorKeyProvider keyProvider = FrameCryptorFactory.createFrameCryptorKeyProvider(sharedKey,
                 ratchetSalt,
                 ratchetWindowSize,
