@@ -7,6 +7,7 @@
 #import <React/RCTLog.h>
 #import <React/RCTUtils.h>
 
+#import "AudioDeviceModuleObserver.h"
 #import "WebRTCModule+RTCPeerConnection.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
@@ -70,11 +71,7 @@
         RCTLogInfo(@"Using video encoder factory: %@", NSStringFromClass([encoderFactory class]));
         RCTLogInfo(@"Using video decoder factory: %@", NSStringFromClass([decoderFactory class]));
 
-        if (audioProcessingModule != nil) {
-            if (audioDevice != nil) {
-                NSLog(@"Both audioProcessingModule and audioDevice are provided, but only one can be used. Ignoring "
-                      @"audioDevice.");
-            }
+        if (audioDevice == nil) {
             RCTLogInfo(@"Using audio processing module: %@", NSStringFromClass([audioProcessingModule class]));
             _peerConnectionFactory =
                 [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:RTCAudioDeviceModuleTypeAudioEngine
@@ -96,6 +93,10 @@
         _frameCryptors = [NSMutableDictionary new];
         _keyProviders = [NSMutableDictionary new];
         _dataPacketCryptors = [NSMutableDictionary new];
+
+        _audioDeviceModule = _peerConnectionFactory.audioDeviceModule;
+        _audioDeviceModuleObserver = [[AudioDeviceModuleObserver alloc] initWithWebRTCModule:self];
+        _audioDeviceModule.observer = _audioDeviceModuleObserver;
 
         dispatch_queue_attr_t attributes =
             dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, -1);
@@ -141,7 +142,15 @@ RCT_EXPORT_MODULE();
         kEventMediaStreamTrackEnded,
         kEventPeerConnectionOnRemoveTrack,
         kEventPeerConnectionOnTrack,
-        kEventFrameCryptionStateChanged
+        kEventFrameCryptionStateChanged,
+        kEventAudioDeviceModuleSpeechActivity,
+        kEventAudioDeviceModuleEngineCreated,
+        kEventAudioDeviceModuleEngineWillEnable,
+        kEventAudioDeviceModuleEngineWillStart,
+        kEventAudioDeviceModuleEngineDidStop,
+        kEventAudioDeviceModuleEngineDidDisable,
+        kEventAudioDeviceModuleEngineWillRelease,
+        kEventAudioDeviceModuleDevicesUpdated
     ];
 }
 
