@@ -1,8 +1,8 @@
-import { Event, EventTarget, defineEventAttribute } from 'event-target-shim/index';
 import { NativeModules } from 'react-native';
 
 import { addListener, removeListener } from './EventEmitter';
 import Logger from './Logger';
+import { Event, EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 const { WebRTCModule } = NativeModules;
 
 const log = new Logger('pc');
@@ -52,6 +52,14 @@ export enum RTCFrameCryptorState {
 export default class RTCFrameCryptor extends EventTarget<RTCFrameCryptorEventMap> {
     private _frameCryptorId: string;
     private _participantId: string;
+
+    get onframecryptorstatechanged() {
+        return getEventAttributeValue(this, 'framecryptorstatechanged');
+    }
+
+    set onframecryptorstatechanged(value) {
+        setEventAttributeValue(this, 'framecryptorstatechanged', value);
+    }
 
     constructor(frameCryptorId: string, participantId: string) {
         super();
@@ -155,9 +163,4 @@ export default class RTCFrameCryptor extends EventTarget<RTCFrameCryptorEventMap
     }
 }
 
-/**
- * Define the `onxxx` event handlers.
- */
-const proto = RTCFrameCryptor.prototype;
-
-defineEventAttribute(proto, 'onframecryptorstatechanged');
+// Event attribute is defined as getter/setter on the class itself.

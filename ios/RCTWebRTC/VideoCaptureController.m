@@ -186,7 +186,6 @@
     }
 }
 
-
 - (NSDictionary *)getSettings {
     AVCaptureDeviceFormat *format = self.selectedFormat;
     CMVideoDimensions dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
