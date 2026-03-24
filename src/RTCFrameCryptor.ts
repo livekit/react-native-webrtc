@@ -1,4 +1,4 @@
-import { Event, EventTarget, defineEventAttribute } from 'event-target-shim/index';
+import { Event, EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 import { NativeModules } from 'react-native';
 
 import { addListener, removeListener } from './EventEmitter';
@@ -7,7 +7,7 @@ const { WebRTCModule } = NativeModules;
 
 const log = new Logger('pc');
 
-type FRAME_CRYPTOR_EVENTS =  'onframecryptorstatechanged';
+type FRAME_CRYPTOR_EVENTS = 'framecryptorstatechanged';
 
 interface IRTCDataChannelEventInitDict extends Event.EventInit {
     frameCryptor: RTCFrameCryptor;
@@ -36,7 +36,7 @@ TEventType extends FRAME_CRYPTOR_EVENTS
 }
 
 type RTCFrameCryptorEventMap = {
-    onframecryptorstatechanged: RTCFrameCryptorStateEvent<'onframecryptorstatechanged'>;
+    framecryptorstatechanged: RTCFrameCryptorStateEvent<FRAME_CRYPTOR_EVENTS>;
 }
 
 export enum RTCFrameCryptorState {
@@ -150,14 +150,15 @@ export default class RTCFrameCryptor extends EventTarget<RTCFrameCryptorEventMap
                 state: ev.state,
             };
 
-            this.dispatchEvent(new RTCFrameCryptorStateEvent('onframecryptorstatechanged', initDict));
+            this.dispatchEvent(new RTCFrameCryptorStateEvent('framecryptorstatechanged', initDict));
         });
     }
+
+    get onframecryptorstatechanged() {
+        return getEventAttributeValue(this, 'framecryptorstatechanged');
+    }
+
+    set onframecryptorstatechanged(value) {
+        setEventAttributeValue(this, 'framecryptorstatechanged', value);
+    }
 }
-
-/**
- * Define the `onxxx` event handlers.
- */
-const proto = RTCFrameCryptor.prototype;
-
-defineEventAttribute(proto, 'onframecryptorstatechanged');
