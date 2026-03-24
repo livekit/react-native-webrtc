@@ -224,10 +224,8 @@ RCT_EXPORT_METHOD(getDisplayMedia : (RCTPromiseResolveBlock)resolve rejecter : (
  * if audio permission was not granted, there will be no "audio" key in
  * the constraints dictionary.
  */
-RCT_EXPORT_METHOD(getUserMedia
-                  : (NSDictionary *)constraints successCallback
-                  : (RCTResponseSenderBlock)successCallback errorCallback
-                  : (RCTResponseSenderBlock)errorCallback) {
+RCT_EXPORT_METHOD(getUserMedia : (NSDictionary *)constraints successCallback : (RCTResponseSenderBlock)
+                      successCallback errorCallback : (RCTResponseSenderBlock)errorCallback) {
 #if TARGET_OS_TV
     errorCallback(@[ @"PlatformNotSupported", @"getUserMedia is not supported on tvOS." ]);
     return;
@@ -321,6 +319,9 @@ RCT_EXPORT_METHOD(enumerateDevices : (RCTResponseSenderBlock)callback) {
                                                                mediaType:AVMediaTypeVideo
                                                                 position:AVCaptureDevicePositionUnspecified];
     for (AVCaptureDevice *device in videoDevicesSession.devices) {
+        if (device.uniqueID == nil) {
+            continue;
+        }
         NSString *position = @"unknown";
         if (device.position == AVCaptureDevicePositionBack) {
             position = @"environment";
@@ -340,11 +341,15 @@ RCT_EXPORT_METHOD(enumerateDevices : (RCTResponseSenderBlock)callback) {
             @"kind" : @"videoinput",
         }];
     }
+
     AVCaptureDeviceDiscoverySession *audioDevicesSession =
         [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:@[ AVCaptureDeviceTypeBuiltInMicrophone ]
                                                                mediaType:AVMediaTypeAudio
                                                                 position:AVCaptureDevicePositionUnspecified];
     for (AVCaptureDevice *device in audioDevicesSession.devices) {
+        if (device.uniqueID == nil) {
+            continue;
+        }
         NSString *label = @"Unknown audio device";
         if (device.localizedName != nil) {
             label = device.localizedName;
@@ -365,10 +370,8 @@ RCT_EXPORT_METHOD(mediaStreamCreate : (nonnull NSString *)streamID) {
     self.localStreams[streamID] = mediaStream;
 }
 
-RCT_EXPORT_METHOD(mediaStreamAddTrack
-                  : (nonnull NSString *)streamID
-                  : (nonnull NSNumber *)pcId
-                  : (nonnull NSString *)trackID) {
+RCT_EXPORT_METHOD(mediaStreamAddTrack : (nonnull NSString *)streamID : (nonnull NSNumber *)pcId : (nonnull NSString *)
+                      trackID) {
     RTCMediaStream *mediaStream = self.localStreams[streamID];
     if (mediaStream == nil) {
         return;
@@ -386,10 +389,8 @@ RCT_EXPORT_METHOD(mediaStreamAddTrack
     }
 }
 
-RCT_EXPORT_METHOD(mediaStreamRemoveTrack
-                  : (nonnull NSString *)streamID
-                  : (nonnull NSNumber *)pcId
-                  : (nonnull NSString *)trackID) {
+RCT_EXPORT_METHOD(mediaStreamRemoveTrack : (nonnull NSString *)streamID : (nonnull NSNumber *)
+                      pcId : (nonnull NSString *)trackID) {
     RTCMediaStream *mediaStream = self.localStreams[streamID];
     if (mediaStream == nil) {
         return;
