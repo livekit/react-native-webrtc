@@ -20,7 +20,9 @@ import RTCDataPacketCryptor, { RTCEncryptedPacket } from './RTCDataPacketCryptor
 import RTCDataPacketCryptorFactory from './RTCDataPacketCryptorFactory';
 import RTCErrorEvent from './RTCErrorEvent';
 import RTCFrameCryptor, { RTCFrameCryptorState } from './RTCFrameCryptor';
-import RTCFrameCryptorFactory, { RTCFrameCryptorAlgorithm, RTCKeyProviderOptions } from './RTCFrameCryptorFactory';
+import RTCFrameCryptorFactory, {
+    RTCFrameCryptorAlgorithm, RTCKeyDerivationAlgorithm, RTCKeyProviderOptions,
+} from './RTCFrameCryptorFactory';
 import RTCIceCandidate from './RTCIceCandidate';
 import RTCKeyProvider from './RTCKeyProvider';
 import RTCPIPView, { startIOSPIP, stopIOSPIP } from './RTCPIPView';
@@ -64,6 +66,7 @@ export {
     RTCFrameCryptor,
     RTCFrameCryptorAlgorithm,
     RTCFrameCryptorState,
+    RTCKeyDerivationAlgorithm,
     RTCFrameCryptorFactory,
     RTCKeyProvider,
     RTCKeyProviderOptions,
