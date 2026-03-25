@@ -8,6 +8,7 @@ if (WebRTCModule === null) {
     }`);
 }
 
+import { Event, EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 import { setupNativeEvents } from './EventEmitter';
 import Logger from './Logger';
 import mediaDevices from './MediaDevices';
@@ -40,6 +41,10 @@ Logger.enable(`${Logger.ROOT_PREFIX}:*`);
 setupNativeEvents();
 
 export {
+    Event,
+    EventTarget,
+    getEventAttributeValue,
+    setEventAttributeValue,
     RTCIceCandidate,
     RTCPeerConnection,
     RTCSessionDescription,
