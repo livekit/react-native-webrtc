@@ -8,7 +8,6 @@ if (WebRTCModule === null) {
     }`);
 }
 
-import { Event, EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 import { setupNativeEvents } from './EventEmitter';
 import Logger from './Logger';
 import mediaDevices from './MediaDevices';
@@ -34,6 +33,7 @@ import RTCRtpTransceiver from './RTCRtpTransceiver';
 import RTCSessionDescription from './RTCSessionDescription';
 import RTCView, { type RTCVideoViewProps, type RTCIOSPIPOptions } from './RTCView';
 import ScreenCapturePickerView from './ScreenCapturePickerView';
+import { Event, EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 
 Logger.enable(`${Logger.ROOT_PREFIX}:*`);
 
