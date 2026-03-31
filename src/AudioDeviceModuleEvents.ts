@@ -1,4 +1,5 @@
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
+import { addListener, removeListener } from './EventEmitter';
 
 const { WebRTCModule } = NativeModules;
 
@@ -38,7 +39,6 @@ export type AudioEngineEventHandler = (params: {
  * iOS/macOS only.
  */
 class AudioDeviceModuleEventEmitter {
-    private eventEmitter: NativeEventEmitter | null = null;
     private engineCreatedHandler: AudioEngineEventNoParamsHandler | null = null;
     private willEnableEngineHandler: AudioEngineEventHandler | null = null;
     private willStartEngineHandler: AudioEngineEventHandler | null = null;
@@ -48,10 +48,8 @@ class AudioDeviceModuleEventEmitter {
 
     public setupListeners() {
         if (Platform.OS !== 'android' && WebRTCModule) {
-            this.eventEmitter = new NativeEventEmitter(WebRTCModule);
-
             // Setup handlers for blocking delegate methods
-            this.eventEmitter.addListener('audioDeviceModuleEngineCreated', async () => {
+            addListener(this, 'audioDeviceModuleEngineCreated', async () => {
                 let result = 0;
 
                 if (this.engineCreatedHandler) {
@@ -66,10 +64,11 @@ class AudioDeviceModuleEventEmitter {
                 WebRTCModule.audioDeviceModuleResolveEngineCreated(result);
             });
 
-            this.eventEmitter.addListener(
+            addListener(
+                this,
                 'audioDeviceModuleEngineWillEnable',
-                async (params: { isPlayoutEnabled: boolean; isRecordingEnabled: boolean }) => {
-                    const { isPlayoutEnabled, isRecordingEnabled } = params;
+                async (event: unknown) => {
+                    const { isPlayoutEnabled, isRecordingEnabled } = event as EngineStateEventData;
                     let result = 0;
 
                     if (this.willEnableEngineHandler) {
@@ -85,10 +84,11 @@ class AudioDeviceModuleEventEmitter {
                 },
             );
 
-            this.eventEmitter.addListener(
+            addListener(
+                this,
                 'audioDeviceModuleEngineWillStart',
-                async (params: { isPlayoutEnabled: boolean; isRecordingEnabled: boolean }) => {
-                    const { isPlayoutEnabled, isRecordingEnabled } = params;
+                async (event: unknown) => {
+                    const { isPlayoutEnabled, isRecordingEnabled } = event as EngineStateEventData;
                     let result = 0;
 
                     if (this.willStartEngineHandler) {
@@ -104,10 +104,11 @@ class AudioDeviceModuleEventEmitter {
                 },
             );
 
-            this.eventEmitter.addListener(
+            addListener(
+                this,
                 'audioDeviceModuleEngineDidStop',
-                async (params: { isPlayoutEnabled: boolean; isRecordingEnabled: boolean }) => {
-                    const { isPlayoutEnabled, isRecordingEnabled } = params;
+                async (event: unknown) => {
+                    const { isPlayoutEnabled, isRecordingEnabled } = event as EngineStateEventData;
                     let result = 0;
 
                     if (this.didStopEngineHandler) {
@@ -123,10 +124,11 @@ class AudioDeviceModuleEventEmitter {
                 },
             );
 
-            this.eventEmitter.addListener(
+            addListener(
+                this,
                 'audioDeviceModuleEngineDidDisable',
-                async (params: { isPlayoutEnabled: boolean; isRecordingEnabled: boolean }) => {
-                    const { isPlayoutEnabled, isRecordingEnabled } = params;
+                async (event: unknown) => {
+                    const { isPlayoutEnabled, isRecordingEnabled } = event as EngineStateEventData;
                     let result = 0;
 
                     if (this.didDisableEngineHandler) {
@@ -142,7 +144,7 @@ class AudioDeviceModuleEventEmitter {
                 },
             );
 
-            this.eventEmitter.addListener('audioDeviceModuleEngineWillRelease', async () => {
+            addListener(this, 'audioDeviceModuleEngineWillRelease', async () => {
                 let result = 0;
 
                 if (this.willReleaseEngineHandler) {
@@ -163,22 +165,28 @@ class AudioDeviceModuleEventEmitter {
      * Subscribe to speech activity events (started/ended)
      */
     addSpeechActivityListener(listener: (data: SpeechActivityEventData) => void) {
-        if (!this.eventEmitter) {
-            throw new Error('AudioDeviceModuleEvents is only available on iOS/macOS');
-        }
+        addListener(listener, 'audioDeviceModuleSpeechActivity', listener as (event: unknown) => void);
+    }
 
-        return this.eventEmitter.addListener('audioDeviceModuleSpeechActivity', listener);
+    /**
+     * Remove a previously registered speech activity listener
+     */
+    removeSpeechActivityListener(listener: (data: SpeechActivityEventData) => void) {
+        removeListener(listener);
     }
 
     /**
      * Subscribe to devices updated event (input/output devices changed)
      */
     addDevicesUpdatedListener(listener: () => void) {
-        if (!this.eventEmitter) {
-            throw new Error('AudioDeviceModuleEvents is only available on iOS/macOS');
-        }
+        addListener(listener, 'audioDeviceModuleDevicesUpdated', listener as (event: unknown) => void);
+    }
 
-        return this.eventEmitter.addListener('audioDeviceModuleDevicesUpdated', listener);
+    /**
+     * Remove a previously registered devices updated listener
+     */
+    removeDevicesUpdatedListener(listener: () => void) {
+        removeListener(listener);
     }
 
     /**

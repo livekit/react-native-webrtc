@@ -24,6 +24,14 @@ const NATIVE_EVENTS = [
     'mediaStreamTrackMuteChanged',
     'mediaStreamTrackEnded',
     'frameCryptionStateChanged',
+    'audioDeviceModuleEngineCreated',
+    'audioDeviceModuleEngineWillEnable',
+    'audioDeviceModuleEngineWillStart',
+    'audioDeviceModuleEngineDidStop',
+    'audioDeviceModuleEngineDidDisable',
+    'audioDeviceModuleEngineWillRelease',
+    'audioDeviceModuleSpeechActivity',
+    'audioDeviceModuleDevicesUpdated',
 ];
 
 const eventEmitter = new EventEmitter();
