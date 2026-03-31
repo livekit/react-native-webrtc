@@ -1,5 +1,7 @@
 examples
 lib
+scripts
+src/vendor
 tools
 
 metro.*.js

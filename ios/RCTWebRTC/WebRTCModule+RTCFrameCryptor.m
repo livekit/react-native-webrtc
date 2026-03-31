@@ -26,6 +26,17 @@ static char frameCryptorUUIDKey;
     }
 }
 
+- (RTCKeyDerivationAlgorithm)getKeyDerivationAlgorithm:(NSNumber *)algorithm {
+    switch ([algorithm intValue]) {
+        case 0:
+            return RTCKeyDerivationAlgorithmPBKDF2;
+        case 1:
+            return RTCKeyDerivationAlgorithmHKDF;
+        default:
+            return RTCKeyDerivationAlgorithmPBKDF2;
+    }
+}
+
 - (NSData *)bytesFromMap:(NSDictionary *)map key:(NSString *)key isBase64Key:(nullable NSString *)isBase64Key {
     BOOL isBase64 = YES;
     if (isBase64Key) {
@@ -257,6 +268,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(frameCryptorFactoryCreateKeyProvider
 
         NSNumber *keyRingSize = keyProviderOptions[@"keyRingSize"];
         NSNumber *discardFrameWhenCryptorNotReady = keyProviderOptions[@"discardFrameWhenCryptorNotReady"];
+        NSNumber *keyDerivationAlgorithm = keyProviderOptions[@"keyDerivationAlgorithm"];
 
         RTCFrameCryptorKeyProvider *keyProvider = [[RTCFrameCryptorKeyProvider alloc]
                         initWithRatchetSalt:ratchetSalt
@@ -267,7 +279,8 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(frameCryptorFactoryCreateKeyProvider
                                 keyRingSize:keyRingSize != nil ? [keyRingSize intValue] : 0
             discardFrameWhenCryptorNotReady:discardFrameWhenCryptorNotReady != nil
                                                 ? [discardFrameWhenCryptorNotReady boolValue]
-                                                : NO];
+                                                : NO
+                     keyDerivationAlgorithm:[self getKeyDerivationAlgorithm:keyDerivationAlgorithm]];
         self.keyProviders[keyProviderId] = keyProvider;
         return;
     });

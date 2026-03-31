@@ -6,6 +6,7 @@ type DegradationPreferenceType = 'maintain-framerate'
     | 'maintain-resolution'
     | 'balanced'
     | 'disabled'
+    | 'maintain-framerate-and-resolution'
 
 
 /**

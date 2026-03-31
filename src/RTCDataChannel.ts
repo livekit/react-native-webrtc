@@ -1,10 +1,10 @@
 import * as base64 from 'base64-js';
-import { EventTarget, defineEventAttribute } from 'event-target-shim/index';
 import { NativeModules } from 'react-native';
 
 import { addListener, removeListener } from './EventEmitter';
 import MessageEvent from './MessageEvent';
 import RTCDataChannelEvent from './RTCDataChannelEvent';
+import { EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 
 const { WebRTCModule } = NativeModules;
 
@@ -22,7 +22,6 @@ type DataChannelEventMap = {
 export default class RTCDataChannel extends EventTarget<DataChannelEventMap> {
     _peerConnectionId: number;
     _reactTag: string;
-
     _bufferedAmount: number;
     _id: number;
     _label: string;
@@ -53,6 +52,54 @@ export default class RTCDataChannel extends EventTarget<DataChannelEventMap> {
         this._readyState = info.readyState;
 
         this._registerEvents();
+    }
+
+    get onbufferedamountlow() {
+        return getEventAttributeValue(this, 'bufferedamountlow');
+    }
+
+    set onbufferedamountlow(value) {
+        setEventAttributeValue(this, 'bufferedamountlow', value);
+    }
+
+    get onclose() {
+        return getEventAttributeValue(this, 'close');
+    }
+
+    set onclose(value) {
+        setEventAttributeValue(this, 'close', value);
+    }
+
+    get onclosing() {
+        return getEventAttributeValue(this, 'closing');
+    }
+
+    set onclosing(value) {
+        setEventAttributeValue(this, 'closing', value);
+    }
+
+    get onerror() {
+        return getEventAttributeValue(this, 'error');
+    }
+
+    set onerror(value) {
+        setEventAttributeValue(this, 'error', value);
+    }
+
+    get onmessage() {
+        return getEventAttributeValue(this, 'message');
+    }
+
+    set onmessage(value) {
+        setEventAttributeValue(this, 'message', value);
+    }
+
+    get onopen() {
+        return getEventAttributeValue(this, 'open');
+    }
+
+    set onopen(value) {
+        setEventAttributeValue(this, 'open', value);
     }
 
     get bufferedAmount(): number {
@@ -176,15 +223,3 @@ export default class RTCDataChannel extends EventTarget<DataChannelEventMap> {
         });
     }
 }
-
-/**
- * Define the `onxxx` event handlers.
- */
-const proto = RTCDataChannel.prototype;
-
-defineEventAttribute(proto, 'bufferedamountlow');
-defineEventAttribute(proto, 'close');
-defineEventAttribute(proto, 'closing');
-defineEventAttribute(proto, 'error');
-defineEventAttribute(proto, 'message');
-defineEventAttribute(proto, 'open');
