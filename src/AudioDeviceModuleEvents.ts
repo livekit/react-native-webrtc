@@ -1,4 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
+
 import { addListener, removeListener } from './EventEmitter';
 
 const { WebRTCModule } = NativeModules;
