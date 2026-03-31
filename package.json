@@ -41,6 +41,7 @@
     "@types/debug": "4.1.7",
     "@types/react": "17.0.40",
     "@types/react-native": "0.67.3",
+    "@types/scheduler": "^0.16.2",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
     "eslint": "^8.24.0",
