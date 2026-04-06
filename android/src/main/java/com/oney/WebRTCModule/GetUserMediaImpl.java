@@ -469,6 +469,15 @@ class GetUserMediaImpl {
         }
     }
 
+    void registerTrack(AudioTrack track, AudioSource source) {
+        tracks.put(track.id(), new TrackPrivate(track, source, null, null));
+    }
+
+    void registerTrack(VideoTrack track, VideoSource source, AbstractVideoCaptureController controller,
+            SurfaceTextureHelper surfaceTextureHelper) {
+        tracks.put(track.id(), new TrackPrivate(track, source, controller, surfaceTextureHelper));
+    }
+
     /**
      * Application/library-specific private members of local
      * {@code MediaStreamTrack}s created by {@code GetUserMediaImpl}.

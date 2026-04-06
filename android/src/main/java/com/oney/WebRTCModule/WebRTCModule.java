@@ -477,6 +477,15 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         return getUserMediaImpl.createVideoTrack(videoCaptureController);
     }
 
+    public void registerTrack(AudioTrack track, AudioSource source) {
+        getUserMediaImpl.registerTrack(track, source);
+    }
+
+    public void registerTrack(VideoTrack track, VideoSource source, AbstractVideoCaptureController controller,
+            SurfaceTextureHelper surfaceTextureHelper) {
+        getUserMediaImpl.registerTrack(track, source, controller, surfaceTextureHelper);
+    }
+
     public void createStream(
             MediaStreamTrack[] tracks, GetUserMediaImpl.BiConsumer<String, ArrayList<WritableMap>> successCallback) {
         getUserMediaImpl.createStream(tracks, successCallback);
