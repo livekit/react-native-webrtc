@@ -25,6 +25,15 @@ export const AudioEngineAvailability = {
     },
 } as const;
 
+export interface AudioProcessingConfig {
+  echoCancellationEnabled: boolean;
+  echoCancellationMobileMode: boolean;
+  noiseSuppressionEnabled: boolean;
+  highpassFilterEnabled: boolean;
+  autoGainControl1Enabled: boolean;
+  autoGainControl2Enabled: boolean;
+}
+
 /**
  * Audio Device Module API for controlling audio devices and settings.
  * iOS/macOS only - will throw on Android.
@@ -325,5 +334,18 @@ export class AudioDeviceModule {
         }
 
         return WebRTCModule.audioDeviceModuleSetEngineAvailability(availability);
+    }
+
+    /**
+     * Get the current audio processing module config (read-only).
+     * Returns the live APM state showing which software audio processing
+     * features are currently enabled.
+     */
+    static getAudioProcessingConfig(): AudioProcessingConfig | null {
+        if (Platform.OS === 'android') {
+            throw new Error('AudioDeviceModule is only available on iOS/macOS');
+        }
+
+        return WebRTCModule.audioDeviceModuleGetAudioProcessingConfig();
     }
 }
