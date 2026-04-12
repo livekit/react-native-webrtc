@@ -230,11 +230,11 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetEngineAvailability
 #pragma mark - Audio Processing Config
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleGetAudioProcessingConfig) {
-    RTCDefaultAudioProcessingModule *apm = (RTCDefaultAudioProcessingModule *)self.audioProcessingModule;
-    if (apm == nil) {
+    id module = self.audioProcessingModule;
+    if (![module isKindOfClass:[RTCDefaultAudioProcessingModule class]]) {
         return nil;
     }
-    RTCAudioProcessingConfig *config = apm.config;
+    RTCAudioProcessingConfig *config = ((RTCDefaultAudioProcessingModule *)module).config;
     return @{
         @"echoCancellationEnabled" : @(config.isEchoCancellationEnabled),
         @"echoCancellationMobileMode" : @(config.isEchoCancellationMobileMode),
