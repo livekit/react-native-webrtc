@@ -8,7 +8,10 @@ if (WebRTCModule === null) {
     }`);
 }
 
-import { AudioDeviceModule, AudioEngineMuteMode, AudioEngineAvailability, type AudioProcessingConfig } from './AudioDeviceModule';
+import {
+    AudioDeviceModule, AudioEngineMuteMode, AudioEngineAvailability,
+} from './AudioDeviceModule';
+import type { AudioProcessingConfig } from './AudioDeviceModule';
 import { audioDeviceModuleEvents } from './AudioDeviceModuleEvents';
 import { setupNativeEvents } from './EventEmitter';
 import Logger from './Logger';
