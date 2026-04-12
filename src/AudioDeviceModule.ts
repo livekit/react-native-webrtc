@@ -340,10 +340,12 @@ export class AudioDeviceModule {
      * Get the current audio processing module config (read-only).
      * Returns the live APM state showing which software audio processing
      * features are currently enabled.
+     *
+     * Currently only available on iOS/macOS. Returns null on Android.
      */
     static getAudioProcessingConfig(): AudioProcessingConfig | null {
         if (Platform.OS === 'android') {
-            throw new Error('AudioDeviceModule is only available on iOS/macOS');
+            return null;
         }
 
         return WebRTCModule.audioDeviceModuleGetAudioProcessingConfig();
