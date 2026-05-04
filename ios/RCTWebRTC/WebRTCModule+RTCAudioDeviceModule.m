@@ -227,6 +227,24 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetEngineAvailability
     }
 }
 
+#pragma mark - Audio Processing Config
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleGetAudioProcessingConfig) {
+    id module = self.audioProcessingModule;
+    if (![module isKindOfClass:[RTCDefaultAudioProcessingModule class]]) {
+        return nil;
+    }
+    RTCAudioProcessingConfig *config = ((RTCDefaultAudioProcessingModule *)module).config;
+    return @{
+        @"echoCancellationEnabled" : @(config.isEchoCancellationEnabled),
+        @"echoCancellationMobileMode" : @(config.isEchoCancellationMobileMode),
+        @"noiseSuppressionEnabled" : @(config.isNoiseSuppressionEnabled),
+        @"highpassFilterEnabled" : @(config.isHighpassFilterEnabled),
+        @"autoGainControl1Enabled" : @(config.isAutoGainControl1Enabled),
+        @"autoGainControl2Enabled" : @(config.isAutoGainControl2Enabled)
+    };
+}
+
 #pragma mark - Observer Delegate Response Methods
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleResolveEngineCreated : (NSInteger)result) {
