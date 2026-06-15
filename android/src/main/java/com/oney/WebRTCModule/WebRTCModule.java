@@ -921,6 +921,9 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
                 return;
             }
             track.setEnabled(enabled);
+            if (track instanceof VideoTrack) {
+                ((VideoTrack) track).setShouldReceive(enabled);
+            }
             getUserMediaImpl.mediaStreamTrackSetEnabled(id, enabled);
         });
     }

@@ -442,6 +442,9 @@ RCT_EXPORT_METHOD(mediaStreamTrackSetEnabled : (nonnull NSNumber *)pcId : (nonnu
     }
 
     track.isEnabled = enabled;
+    if ([track isKindOfClass:[RTCVideoTrack class]]) {
+        ((RTCVideoTrack *)track).shouldReceive = enabled;
+    }
 #if !TARGET_OS_TV
     if (track.captureController) {  // It could be a remote track!
         if (enabled) {
