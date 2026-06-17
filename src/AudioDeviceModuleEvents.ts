@@ -243,18 +243,41 @@ class AudioDeviceModuleEventEmitter {
     }
 
     /**
+     * Apply a handler change while keeping the native active flag ordered so a
+     * delegate callback racing registration can never skip a handler that exists.
+     *
+     * On activation (null to non-null) the flag is pushed active *before* the
+     * handler is published, so the worst case is a JS round trip whose listener
+     * sees the not-yet-published handler and resolves 0, never a skipped veto. On
+     * deactivation the handler is cleared first, then the flag pushed inactive, so
+     * the same safe ordering holds in reverse. No push happens when active state
+     * is unchanged.
+     */
+    private applyHandlerActive(method: string, wasActive: boolean, isActive: boolean, assign: () => void) {
+        if (isActive && !wasActive) {
+            this.pushHandlerActive(method, true);
+        }
+
+        assign();
+
+        if (!isActive && wasActive) {
+            this.pushHandlerActive(method, false);
+        }
+    }
+
+    /**
      * Set handler for engine created delegate - MUST return 0 for success or error code
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setEngineCreatedHandler(handler: AudioEngineEventNoParamsHandler | null) {
-        const wasActive = this.engineCreatedHandler !== null;
-
-        this.engineCreatedHandler = handler;
-        const isActive = this.engineCreatedHandler !== null;
-
-        if (wasActive !== isActive) {
-            this.pushHandlerActive('audioDeviceModuleSetEngineCreatedActive', isActive);
-        }
+        this.applyHandlerActive(
+            'audioDeviceModuleSetEngineCreatedActive',
+            this.engineCreatedHandler !== null,
+            handler !== null,
+            () => {
+                this.engineCreatedHandler = handler;
+            },
+        );
     }
 
     /**
@@ -262,14 +285,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setWillEnableEngineHandler(handler: AudioEngineEventHandler | null) {
-        const wasActive = this.willEnableEngineHandler !== null;
-
-        this.willEnableEngineHandler = handler;
-        const isActive = this.willEnableEngineHandler !== null;
-
-        if (wasActive !== isActive) {
-            this.pushHandlerActive('audioDeviceModuleSetWillEnableEngineActive', isActive);
-        }
+        this.applyHandlerActive(
+            'audioDeviceModuleSetWillEnableEngineActive',
+            this.willEnableEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.willEnableEngineHandler = handler;
+            },
+        );
     }
 
     /**
@@ -277,14 +300,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setWillStartEngineHandler(handler: AudioEngineEventHandler | null) {
-        const wasActive = this.willStartEngineHandler !== null;
-
-        this.willStartEngineHandler = handler;
-        const isActive = this.willStartEngineHandler !== null;
-
-        if (wasActive !== isActive) {
-            this.pushHandlerActive('audioDeviceModuleSetWillStartEngineActive', isActive);
-        }
+        this.applyHandlerActive(
+            'audioDeviceModuleSetWillStartEngineActive',
+            this.willStartEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.willStartEngineHandler = handler;
+            },
+        );
     }
 
     /**
@@ -292,14 +315,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setDidStopEngineHandler(handler: AudioEngineEventHandler | null) {
-        const wasActive = this.didStopEngineHandler !== null;
-
-        this.didStopEngineHandler = handler;
-        const isActive = this.didStopEngineHandler !== null;
-
-        if (wasActive !== isActive) {
-            this.pushHandlerActive('audioDeviceModuleSetDidStopEngineActive', isActive);
-        }
+        this.applyHandlerActive(
+            'audioDeviceModuleSetDidStopEngineActive',
+            this.didStopEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.didStopEngineHandler = handler;
+            },
+        );
     }
 
     /**
@@ -307,14 +330,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setDidDisableEngineHandler(handler: AudioEngineEventHandler | null) {
-        const wasActive = this.didDisableEngineHandler !== null;
-
-        this.didDisableEngineHandler = handler;
-        const isActive = this.didDisableEngineHandler !== null;
-
-        if (wasActive !== isActive) {
-            this.pushHandlerActive('audioDeviceModuleSetDidDisableEngineActive', isActive);
-        }
+        this.applyHandlerActive(
+            'audioDeviceModuleSetDidDisableEngineActive',
+            this.didDisableEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.didDisableEngineHandler = handler;
+            },
+        );
     }
 
     /**
@@ -322,14 +345,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setWillReleaseEngineHandler(handler: AudioEngineEventNoParamsHandler | null) {
-        const wasActive = this.willReleaseEngineHandler !== null;
-
-        this.willReleaseEngineHandler = handler;
-        const isActive = this.willReleaseEngineHandler !== null;
-
-        if (wasActive !== isActive) {
-            this.pushHandlerActive('audioDeviceModuleSetWillReleaseEngineActive', isActive);
-        }
+        this.applyHandlerActive(
+            'audioDeviceModuleSetWillReleaseEngineActive',
+            this.willReleaseEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.willReleaseEngineHandler = handler;
+            },
+        );
     }
 }
 
