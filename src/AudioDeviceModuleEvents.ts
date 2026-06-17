@@ -63,9 +63,13 @@ class AudioDeviceModuleEventEmitter {
 
     public setupListeners() {
         if (Platform.OS !== 'android' && WebRTCModule) {
-            // addListener appends without de-duping, so guard against a second
-            // registerGlobals() double-registering listeners and double-invoking handlers.
+            // Reconcile on every call so a recreated native observer (which defaults
+            // every hook to active) is re-synced to the current handler state even
+            // when JS listeners are already registered. addListener appends without
+            // de-duping, so the registration below must run only once.
             if (this.listenersSetUp) {
+                this.reconcileActiveFlags();
+
                 return;
             }
 
@@ -184,22 +188,7 @@ class AudioDeviceModuleEventEmitter {
                 WebRTCModule.audioDeviceModuleResolveWillReleaseEngine(requestId, result);
             });
 
-            // Reconcile native active flags with the current handler state. Native
-            // defaults every hook to active, so pushing the real state here makes a
-            // fresh or recreated observer match the handlers registered now instead
-            // of depending on a set/clear transition that may have already happened.
-            const activeFlags: [string, boolean][] = [
-                [ 'audioDeviceModuleSetEngineCreatedActive', this.engineCreatedHandler !== null ],
-                [ 'audioDeviceModuleSetWillEnableEngineActive', this.willEnableEngineHandler !== null ],
-                [ 'audioDeviceModuleSetWillStartEngineActive', this.willStartEngineHandler !== null ],
-                [ 'audioDeviceModuleSetDidStopEngineActive', this.didStopEngineHandler !== null ],
-                [ 'audioDeviceModuleSetDidDisableEngineActive', this.didDisableEngineHandler !== null ],
-                [ 'audioDeviceModuleSetWillReleaseEngineActive', this.willReleaseEngineHandler !== null ],
-            ];
-
-            for (const [ method, isActive ] of activeFlags) {
-                this.pushHandlerActive(method, isActive);
-            }
+            this.reconcileActiveFlags();
         }
     }
 
@@ -262,6 +251,27 @@ class AudioDeviceModuleEventEmitter {
 
         if (!isActive && wasActive) {
             this.pushHandlerActive(method, false);
+        }
+    }
+
+    /**
+     * Push the current handler state for every hook to native. Native defaults
+     * each hook to active, so this re-syncs a fresh or recreated observer to the
+     * handlers registered now rather than relying on a set/clear transition that
+     * may have already happened.
+     */
+    private reconcileActiveFlags() {
+        const activeFlags: [string, boolean][] = [
+            [ 'audioDeviceModuleSetEngineCreatedActive', this.engineCreatedHandler !== null ],
+            [ 'audioDeviceModuleSetWillEnableEngineActive', this.willEnableEngineHandler !== null ],
+            [ 'audioDeviceModuleSetWillStartEngineActive', this.willStartEngineHandler !== null ],
+            [ 'audioDeviceModuleSetDidStopEngineActive', this.didStopEngineHandler !== null ],
+            [ 'audioDeviceModuleSetDidDisableEngineActive', this.didDisableEngineHandler !== null ],
+            [ 'audioDeviceModuleSetWillReleaseEngineActive', this.willReleaseEngineHandler !== null ],
+        ];
+
+        for (const [ method, isActive ] of activeFlags) {
+            this.pushHandlerActive(method, isActive);
         }
     }
 
