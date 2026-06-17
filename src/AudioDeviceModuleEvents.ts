@@ -205,6 +205,17 @@ class AudioDeviceModuleEventEmitter {
     }
 
     /**
+     * Push a handler's active state to native. The native active-flag setters are
+     * iOS/macOS only, so this is gated like setupListeners() to avoid a TypeError
+     * on Android, where these methods do not exist.
+     */
+    private pushHandlerActive(method: string, isActive: boolean) {
+        if (Platform.OS !== 'android' && WebRTCModule) {
+            WebRTCModule[method](isActive);
+        }
+    }
+
+    /**
      * Set handler for engine created delegate - MUST return 0 for success or error code
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
@@ -214,9 +225,8 @@ class AudioDeviceModuleEventEmitter {
         this.engineCreatedHandler = handler;
         const isActive = this.engineCreatedHandler !== null;
 
-        // Notify native about active state change to avoid unnecessary JS round trips
-        if (wasActive !== isActive && WebRTCModule) {
-            WebRTCModule.audioDeviceModuleSetEngineCreatedActive(isActive);
+        if (wasActive !== isActive) {
+            this.pushHandlerActive('audioDeviceModuleSetEngineCreatedActive', isActive);
         }
     }
 
@@ -230,8 +240,8 @@ class AudioDeviceModuleEventEmitter {
         this.willEnableEngineHandler = handler;
         const isActive = this.willEnableEngineHandler !== null;
 
-        if (wasActive !== isActive && WebRTCModule) {
-            WebRTCModule.audioDeviceModuleSetWillEnableEngineActive(isActive);
+        if (wasActive !== isActive) {
+            this.pushHandlerActive('audioDeviceModuleSetWillEnableEngineActive', isActive);
         }
     }
 
@@ -245,8 +255,8 @@ class AudioDeviceModuleEventEmitter {
         this.willStartEngineHandler = handler;
         const isActive = this.willStartEngineHandler !== null;
 
-        if (wasActive !== isActive && WebRTCModule) {
-            WebRTCModule.audioDeviceModuleSetWillStartEngineActive(isActive);
+        if (wasActive !== isActive) {
+            this.pushHandlerActive('audioDeviceModuleSetWillStartEngineActive', isActive);
         }
     }
 
@@ -260,8 +270,8 @@ class AudioDeviceModuleEventEmitter {
         this.didStopEngineHandler = handler;
         const isActive = this.didStopEngineHandler !== null;
 
-        if (wasActive !== isActive && WebRTCModule) {
-            WebRTCModule.audioDeviceModuleSetDidStopEngineActive(isActive);
+        if (wasActive !== isActive) {
+            this.pushHandlerActive('audioDeviceModuleSetDidStopEngineActive', isActive);
         }
     }
 
@@ -275,8 +285,8 @@ class AudioDeviceModuleEventEmitter {
         this.didDisableEngineHandler = handler;
         const isActive = this.didDisableEngineHandler !== null;
 
-        if (wasActive !== isActive && WebRTCModule) {
-            WebRTCModule.audioDeviceModuleSetDidDisableEngineActive(isActive);
+        if (wasActive !== isActive) {
+            this.pushHandlerActive('audioDeviceModuleSetDidDisableEngineActive', isActive);
         }
     }
 
@@ -290,8 +300,8 @@ class AudioDeviceModuleEventEmitter {
         this.willReleaseEngineHandler = handler;
         const isActive = this.willReleaseEngineHandler !== null;
 
-        if (wasActive !== isActive && WebRTCModule) {
-            WebRTCModule.audioDeviceModuleSetWillReleaseEngineActive(isActive);
+        if (wasActive !== isActive) {
+            this.pushHandlerActive('audioDeviceModuleSetWillReleaseEngineActive', isActive);
         }
     }
 }
