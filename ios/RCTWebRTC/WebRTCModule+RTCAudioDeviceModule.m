@@ -271,4 +271,36 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleResolveWillReleaseEngine
     return nil;
 }
 
+#pragma mark - Handler Active State
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetEngineCreatedActive : (BOOL)isActive) {
+    self.audioDeviceModuleObserver.isEngineCreatedActive = isActive;
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetWillEnableEngineActive : (BOOL)isActive) {
+    self.audioDeviceModuleObserver.isWillEnableEngineActive = isActive;
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetWillStartEngineActive : (BOOL)isActive) {
+    self.audioDeviceModuleObserver.isWillStartEngineActive = isActive;
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetDidStopEngineActive : (BOOL)isActive) {
+    self.audioDeviceModuleObserver.isDidStopEngineActive = isActive;
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetDidDisableEngineActive : (BOOL)isActive) {
+    self.audioDeviceModuleObserver.isDidDisableEngineActive = isActive;
+    return nil;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetWillReleaseEngineActive : (BOOL)isActive) {
+    self.audioDeviceModuleObserver.isWillReleaseEngineActive = isActive;
+    return nil;
+}
+
 @end
