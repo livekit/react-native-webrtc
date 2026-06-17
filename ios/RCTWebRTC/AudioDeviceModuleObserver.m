@@ -297,8 +297,14 @@ static os_log_t ADMObserverLog(void) {
         }
         self.awaitingRequestId = 0;
         store();
+        // Signal inside the lock so this signal is always posted before the next
+        // round's send-side @synchronized block can start. Otherwise a resolve
+        // preempted between releasing the lock and signalling could, across a round
+        // boundary, wake the next round and hand it this round's result. Keeping it
+        // inside the lock also lets the next round's pre-send drain reliably clear
+        // any stray signal left by a resolve that raced its own timeout.
+        dispatch_semaphore_signal(semaphore);
     }
-    dispatch_semaphore_signal(semaphore);
 }
 
 - (void)resolveEngineCreatedWithRequestId:(NSInteger)requestId result:(NSInteger)result {
