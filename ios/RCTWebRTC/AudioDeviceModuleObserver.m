@@ -110,7 +110,7 @@ static os_log_t ADMObserverLog(void) {
     if (!isActive) {
         // No handler registered, proceed immediately without JS round trip.
         // This avoids the deadlock window entirely.
-        os_log(ADMObserverLog(), "Skipping JS round-trip for %{public}@ (no handler registered)", eventName);
+        os_log_debug(ADMObserverLog(), "Skipping JS round-trip for %{public}@ (no handler registered)", eventName);
         return 0;
     }
 
