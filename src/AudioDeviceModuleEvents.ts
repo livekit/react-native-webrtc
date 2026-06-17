@@ -173,6 +173,23 @@ class AudioDeviceModuleEventEmitter {
 
                 WebRTCModule.audioDeviceModuleResolveWillReleaseEngine(requestId, result);
             });
+
+            // Reconcile native active flags with the current handler state. Native
+            // defaults every hook to active, so pushing the real state here makes a
+            // fresh or recreated observer match the handlers registered now instead
+            // of depending on a set/clear transition that may have already happened.
+            const activeFlags: [string, boolean][] = [
+                [ 'audioDeviceModuleSetEngineCreatedActive', this.engineCreatedHandler !== null ],
+                [ 'audioDeviceModuleSetWillEnableEngineActive', this.willEnableEngineHandler !== null ],
+                [ 'audioDeviceModuleSetWillStartEngineActive', this.willStartEngineHandler !== null ],
+                [ 'audioDeviceModuleSetDidStopEngineActive', this.didStopEngineHandler !== null ],
+                [ 'audioDeviceModuleSetDidDisableEngineActive', this.didDisableEngineHandler !== null ],
+                [ 'audioDeviceModuleSetWillReleaseEngineActive', this.willReleaseEngineHandler !== null ],
+            ];
+
+            for (const [ method, isActive ] of activeFlags) {
+                this.pushHandlerActive(method, isActive);
+            }
         }
     }
 

@@ -69,6 +69,17 @@ static os_log_t ADMObserverLog(void) {
         _didStopEngineSemaphore = dispatch_semaphore_create(0);
         _didDisableEngineSemaphore = dispatch_semaphore_create(0);
         _willReleaseEngineSemaphore = dispatch_semaphore_create(0);
+
+        // Default every hook to active so a delegate callback that fires before JS
+        // has reconciled its handler state (e.g. a recreated observer) still does the
+        // bounded round trip rather than silently skipping a handler's veto. JS
+        // reconciles these to the real handler state in setupListeners().
+        _isEngineCreatedActive = YES;
+        _isWillEnableEngineActive = YES;
+        _isWillStartEngineActive = YES;
+        _isDidStopEngineActive = YES;
+        _isDidDisableEngineActive = YES;
+        _isWillReleaseEngineActive = YES;
     }
     return self;
 }
