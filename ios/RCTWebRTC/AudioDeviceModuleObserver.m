@@ -175,7 +175,9 @@ static os_log_t ADMObserverLog(void) {
                                           }
                                              isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine created - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine created - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
@@ -202,10 +204,12 @@ static os_log_t ADMObserverLog(void) {
                                           }
                                              isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - JS returned: %ld", (long)result);
 
-    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-    RCTLog(@"[AudioDeviceModuleObserver] Audio session category: %@", audioSession.category);
+        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+        RCTLog(@"[AudioDeviceModuleObserver] Audio session category: %@", audioSession.category);
+    }
 
     return result;
 }
@@ -233,7 +237,9 @@ static os_log_t ADMObserverLog(void) {
                                           }
                                              isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will start - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will start - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
@@ -260,7 +266,9 @@ static os_log_t ADMObserverLog(void) {
                                           }
                                              isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine did stop - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine did stop - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
@@ -287,7 +295,9 @@ static os_log_t ADMObserverLog(void) {
                                           }
                                              isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine did disable - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine did disable - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
@@ -306,7 +316,9 @@ static os_log_t ADMObserverLog(void) {
                                           }
                                              isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will release - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will release - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
