@@ -59,8 +59,18 @@ class AudioDeviceModuleEventEmitter {
     private didDisableEngineHandler: AudioEngineEventHandler | null = null;
     private willReleaseEngineHandler: AudioEngineEventNoParamsHandler | null = null;
 
+    private listenersSetUp = false;
+
     public setupListeners() {
         if (Platform.OS !== 'android' && WebRTCModule) {
+            // addListener appends without de-duping, so guard against a second
+            // registerGlobals() double-registering listeners and double-invoking handlers.
+            if (this.listenersSetUp) {
+                return;
+            }
+
+            this.listenersSetUp = true;
+
             // Setup handlers for blocking delegate methods
             addListener(this, 'audioDeviceModuleEngineCreated', async (event: unknown) => {
                 const { requestId } = event as EngineEventPayload;
