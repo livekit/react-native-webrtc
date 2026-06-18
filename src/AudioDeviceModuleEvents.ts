@@ -59,8 +59,22 @@ class AudioDeviceModuleEventEmitter {
     private didDisableEngineHandler: AudioEngineEventHandler | null = null;
     private willReleaseEngineHandler: AudioEngineEventNoParamsHandler | null = null;
 
+    private listenersSetUp = false;
+
     public setupListeners() {
         if (Platform.OS !== 'android' && WebRTCModule) {
+            // Reconcile on every call so a recreated native observer (which defaults
+            // every hook to active) is re-synced to the current handler state even
+            // when JS listeners are already registered. addListener appends without
+            // de-duping, so the registration below must run only once.
+            if (this.listenersSetUp) {
+                this.reconcileActiveFlags();
+
+                return;
+            }
+
+            this.listenersSetUp = true;
+
             // Setup handlers for blocking delegate methods
             addListener(this, 'audioDeviceModuleEngineCreated', async (event: unknown) => {
                 const { requestId } = event as EngineEventPayload;
@@ -173,6 +187,8 @@ class AudioDeviceModuleEventEmitter {
 
                 WebRTCModule.audioDeviceModuleResolveWillReleaseEngine(requestId, result);
             });
+
+            this.reconcileActiveFlags();
         }
     }
 
@@ -205,11 +221,73 @@ class AudioDeviceModuleEventEmitter {
     }
 
     /**
+     * Push a handler's active state to native. The native active-flag setters are
+     * iOS/macOS only, so this is gated like setupListeners() to avoid a TypeError
+     * on Android, where these methods do not exist.
+     */
+    private pushHandlerActive(method: string, isActive: boolean) {
+        if (Platform.OS !== 'android' && WebRTCModule) {
+            WebRTCModule[method](isActive);
+        }
+    }
+
+    /**
+     * Apply a handler change while keeping the native active flag ordered so a
+     * delegate callback racing registration can never skip a handler that exists.
+     *
+     * On activation (null to non-null) the flag is pushed active *before* the
+     * handler is published, so the worst case is a JS round trip whose listener
+     * sees the not-yet-published handler and resolves 0, never a skipped veto. On
+     * deactivation the handler is cleared first, then the flag pushed inactive, so
+     * the same safe ordering holds in reverse. No push happens when active state
+     * is unchanged.
+     */
+    private applyHandlerActive(method: string, wasActive: boolean, isActive: boolean, assign: () => void) {
+        if (isActive && !wasActive) {
+            this.pushHandlerActive(method, true);
+        }
+
+        assign();
+
+        if (!isActive && wasActive) {
+            this.pushHandlerActive(method, false);
+        }
+    }
+
+    /**
+     * Push the current handler state for every hook to native. Native defaults
+     * each hook to active, so this re-syncs a fresh or recreated observer to the
+     * handlers registered now rather than relying on a set/clear transition that
+     * may have already happened.
+     */
+    private reconcileActiveFlags() {
+        const activeFlags: [string, boolean][] = [
+            [ 'audioDeviceModuleSetEngineCreatedActive', this.engineCreatedHandler !== null ],
+            [ 'audioDeviceModuleSetWillEnableEngineActive', this.willEnableEngineHandler !== null ],
+            [ 'audioDeviceModuleSetWillStartEngineActive', this.willStartEngineHandler !== null ],
+            [ 'audioDeviceModuleSetDidStopEngineActive', this.didStopEngineHandler !== null ],
+            [ 'audioDeviceModuleSetDidDisableEngineActive', this.didDisableEngineHandler !== null ],
+            [ 'audioDeviceModuleSetWillReleaseEngineActive', this.willReleaseEngineHandler !== null ],
+        ];
+
+        for (const [ method, isActive ] of activeFlags) {
+            this.pushHandlerActive(method, isActive);
+        }
+    }
+
+    /**
      * Set handler for engine created delegate - MUST return 0 for success or error code
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setEngineCreatedHandler(handler: AudioEngineEventNoParamsHandler | null) {
-        this.engineCreatedHandler = handler;
+        this.applyHandlerActive(
+            'audioDeviceModuleSetEngineCreatedActive',
+            this.engineCreatedHandler !== null,
+            handler !== null,
+            () => {
+                this.engineCreatedHandler = handler;
+            },
+        );
     }
 
     /**
@@ -217,7 +295,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setWillEnableEngineHandler(handler: AudioEngineEventHandler | null) {
-        this.willEnableEngineHandler = handler;
+        this.applyHandlerActive(
+            'audioDeviceModuleSetWillEnableEngineActive',
+            this.willEnableEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.willEnableEngineHandler = handler;
+            },
+        );
     }
 
     /**
@@ -225,7 +310,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setWillStartEngineHandler(handler: AudioEngineEventHandler | null) {
-        this.willStartEngineHandler = handler;
+        this.applyHandlerActive(
+            'audioDeviceModuleSetWillStartEngineActive',
+            this.willStartEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.willStartEngineHandler = handler;
+            },
+        );
     }
 
     /**
@@ -233,7 +325,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setDidStopEngineHandler(handler: AudioEngineEventHandler | null) {
-        this.didStopEngineHandler = handler;
+        this.applyHandlerActive(
+            'audioDeviceModuleSetDidStopEngineActive',
+            this.didStopEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.didStopEngineHandler = handler;
+            },
+        );
     }
 
     /**
@@ -241,7 +340,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setDidDisableEngineHandler(handler: AudioEngineEventHandler | null) {
-        this.didDisableEngineHandler = handler;
+        this.applyHandlerActive(
+            'audioDeviceModuleSetDidDisableEngineActive',
+            this.didDisableEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.didDisableEngineHandler = handler;
+            },
+        );
     }
 
     /**
@@ -249,7 +355,14 @@ class AudioDeviceModuleEventEmitter {
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
     setWillReleaseEngineHandler(handler: AudioEngineEventNoParamsHandler | null) {
-        this.willReleaseEngineHandler = handler;
+        this.applyHandlerActive(
+            'audioDeviceModuleSetWillReleaseEngineActive',
+            this.willReleaseEngineHandler !== null,
+            handler !== null,
+            () => {
+                this.willReleaseEngineHandler = handler;
+            },
+        );
     }
 }
 

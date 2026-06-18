@@ -69,6 +69,17 @@ static os_log_t ADMObserverLog(void) {
         _didStopEngineSemaphore = dispatch_semaphore_create(0);
         _didDisableEngineSemaphore = dispatch_semaphore_create(0);
         _willReleaseEngineSemaphore = dispatch_semaphore_create(0);
+
+        // Default every hook to active so a delegate callback that fires before JS
+        // has reconciled its handler state (e.g. a recreated observer) still does the
+        // bounded round trip rather than silently skipping a handler's veto. JS
+        // reconciles these to the real handler state in setupListeners().
+        _isEngineCreatedActive = YES;
+        _isWillEnableEngineActive = YES;
+        _isWillStartEngineActive = YES;
+        _isDidStopEngineActive = YES;
+        _isDidDisableEngineActive = YES;
+        _isWillReleaseEngineActive = YES;
     }
     return self;
 }
@@ -87,11 +98,22 @@ static os_log_t ADMObserverLog(void) {
 // already given up). No legitimate signal for *this* round can exist at drain
 // time because the event has not been sent yet.
 //
-// Returns the JS-provided result on success, or 0 on timeout.
+// If isActive is NO, returns 0 immediately without a JS round trip, avoiding the
+// deadlock window when no handler is registered.
+//
+// Returns the JS-provided result on success, or 0 on timeout or when inactive.
 - (NSInteger)sendEventAndWaitWithName:(NSString *)eventName
                                  body:(NSDictionary *)body
                             semaphore:(dispatch_semaphore_t)semaphore
-                          resultBlock:(NSInteger (^)(void))resultBlock {
+                          resultBlock:(NSInteger (^)(void))resultBlock
+                             isActive:(BOOL)isActive {
+    if (!isActive) {
+        // No handler registered, proceed immediately without JS round trip.
+        // This avoids the deadlock window entirely.
+        os_log_debug(ADMObserverLog(), "Skipping JS round-trip for %{public}@ (no handler registered)", eventName);
+        return 0;
+    }
+
     NSInteger requestId;
     @synchronized(self) {
         requestId = ++self.requestIdSeq;
@@ -139,16 +161,23 @@ static os_log_t ADMObserverLog(void) {
 }
 
 - (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule didCreateEngine:(AVAudioEngine *)engine {
-    RCTLog(@"[AudioDeviceModuleObserver] Engine created - waiting for JS response");
+    BOOL isActive = self.isEngineCreatedActive;
+
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine created - waiting for JS response");
+    }
 
     NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineCreated
                                                  body:@{}
                                             semaphore:self.engineCreatedSemaphore
                                           resultBlock:^NSInteger {
                                               return self.engineCreatedResult;
-                                          }];
+                                          }
+                                             isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine created - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine created - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
@@ -156,9 +185,13 @@ static os_log_t ADMObserverLog(void) {
               willEnableEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - playout: %d, recording: %d - waiting for JS response",
-           isPlayoutEnabled,
-           isRecordingEnabled);
+    BOOL isActive = self.isWillEnableEngineActive;
+
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - playout: %d, recording: %d - waiting for JS response",
+               isPlayoutEnabled,
+               isRecordingEnabled);
+    }
 
     NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineWillEnable
                                                  body:@{
@@ -168,12 +201,15 @@ static os_log_t ADMObserverLog(void) {
                                             semaphore:self.willEnableEngineSemaphore
                                           resultBlock:^NSInteger {
                                               return self.willEnableEngineResult;
-                                          }];
+                                          }
+                                             isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - JS returned: %ld", (long)result);
 
-    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-    RCTLog(@"[AudioDeviceModuleObserver] Audio session category: %@", audioSession.category);
+        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+        RCTLog(@"[AudioDeviceModuleObserver] Audio session category: %@", audioSession.category);
+    }
 
     return result;
 }
@@ -182,9 +218,13 @@ static os_log_t ADMObserverLog(void) {
                willStartEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will start - playout: %d, recording: %d - waiting for JS response",
-           isPlayoutEnabled,
-           isRecordingEnabled);
+    BOOL isActive = self.isWillStartEngineActive;
+
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will start - playout: %d, recording: %d - waiting for JS response",
+               isPlayoutEnabled,
+               isRecordingEnabled);
+    }
 
     NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineWillStart
                                                  body:@{
@@ -194,9 +234,12 @@ static os_log_t ADMObserverLog(void) {
                                             semaphore:self.willStartEngineSemaphore
                                           resultBlock:^NSInteger {
                                               return self.willStartEngineResult;
-                                          }];
+                                          }
+                                             isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will start - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will start - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
@@ -204,9 +247,13 @@ static os_log_t ADMObserverLog(void) {
                  didStopEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
-    RCTLog(@"[AudioDeviceModuleObserver] Engine did stop - playout: %d, recording: %d - waiting for JS response",
-           isPlayoutEnabled,
-           isRecordingEnabled);
+    BOOL isActive = self.isDidStopEngineActive;
+
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine did stop - playout: %d, recording: %d - waiting for JS response",
+               isPlayoutEnabled,
+               isRecordingEnabled);
+    }
 
     NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineDidStop
                                                  body:@{
@@ -216,9 +263,12 @@ static os_log_t ADMObserverLog(void) {
                                             semaphore:self.didStopEngineSemaphore
                                           resultBlock:^NSInteger {
                                               return self.didStopEngineResult;
-                                          }];
+                                          }
+                                             isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine did stop - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine did stop - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
@@ -226,9 +276,13 @@ static os_log_t ADMObserverLog(void) {
               didDisableEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
-    RCTLog(@"[AudioDeviceModuleObserver] Engine did disable - playout: %d, recording: %d - waiting for JS response",
-           isPlayoutEnabled,
-           isRecordingEnabled);
+    BOOL isActive = self.isDidDisableEngineActive;
+
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine did disable - playout: %d, recording: %d - waiting for JS response",
+               isPlayoutEnabled,
+               isRecordingEnabled);
+    }
 
     NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineDidDisable
                                                  body:@{
@@ -238,23 +292,33 @@ static os_log_t ADMObserverLog(void) {
                                             semaphore:self.didDisableEngineSemaphore
                                           resultBlock:^NSInteger {
                                               return self.didDisableEngineResult;
-                                          }];
+                                          }
+                                             isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine did disable - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine did disable - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
 - (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule willReleaseEngine:(AVAudioEngine *)engine {
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will release - waiting for JS response");
+    BOOL isActive = self.isWillReleaseEngineActive;
+
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will release - waiting for JS response");
+    }
 
     NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineWillRelease
                                                  body:@{}
                                             semaphore:self.willReleaseEngineSemaphore
                                           resultBlock:^NSInteger {
                                               return self.willReleaseEngineResult;
-                                          }];
+                                          }
+                                             isActive:isActive];
 
-    RCTLog(@"[AudioDeviceModuleObserver] Engine will release - JS returned: %ld", (long)result);
+    if (isActive) {
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will release - JS returned: %ld", (long)result);
+    }
     return result;
 }
 
