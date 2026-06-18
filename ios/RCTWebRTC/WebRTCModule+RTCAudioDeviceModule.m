@@ -102,7 +102,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetVoiceProcessingEnabled
                   : (BOOL)enabled resolver
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-    NSInteger result = [self.audioDeviceModule setVoiceProcessingEnabled:enabled];
+    NSInteger result = [self.audioDeviceModule setPlatformVoiceProcessingAllowed:enabled];
     if (result == 0) {
         resolve(nil);
     } else {
@@ -113,7 +113,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetVoiceProcessingEnabled
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleIsVoiceProcessingEnabled) {
-    return @(self.audioDeviceModule.isVoiceProcessingEnabled);
+    return @(self.audioDeviceModule.platformAudioProcessingState.isVoiceProcessingEnabledRequested);
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleSetVoiceProcessingBypassed : (BOOL)bypassed) {
