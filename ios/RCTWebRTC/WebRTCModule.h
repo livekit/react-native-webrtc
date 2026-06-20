@@ -50,6 +50,7 @@ static NSString *const kEventAudioDeviceModuleDevicesUpdated = @"audioDeviceModu
 @property(nonatomic, strong) NSMutableDictionary<NSString *, RTCDataPacketCryptor *> *dataPacketCryptors;
 
 @property(nonatomic, readonly) RTCAudioDeviceModule *audioDeviceModule;
+@property(nonatomic, weak) id<RTCAudioProcessingModule> audioProcessingModule;
 @property(nonatomic, strong) AudioDeviceModuleObserver *audioDeviceModuleObserver;
 
 - (RTCMediaStream *)streamForReactTag:(NSString *)reactTag;

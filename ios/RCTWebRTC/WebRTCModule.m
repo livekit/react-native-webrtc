@@ -95,6 +95,7 @@
         _dataPacketCryptors = [NSMutableDictionary new];
 
         _audioDeviceModule = _peerConnectionFactory.audioDeviceModule;
+        _audioProcessingModule = audioProcessingModule;
         _audioDeviceModuleObserver = [[AudioDeviceModuleObserver alloc] initWithWebRTCModule:self];
         _audioDeviceModule.observer = _audioDeviceModuleObserver;
 
