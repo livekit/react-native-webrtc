@@ -1,6 +1,6 @@
 #import "SampleBufferVideoCallView.h"
 #import <Accelerate/Accelerate.h>
-#import <WebRTC/WebRTC.h>
+#import <LiveKitWebRTC/LiveKitWebRTC.h>
 #import "I420Converter.h"
 
 @protocol SampleBufferRendering<AVQueuedSampleBufferRendering>
@@ -57,7 +57,7 @@
     _currentRotation = -1;
 }
 
-- (void)recalculateScale:(RTCVideoRotation)rotation {
+- (void)recalculateScale:(LKRTCVideoRotation)rotation {
     if (self.currentRotation != rotation) {
         self.currentRotation = rotation;
 
@@ -77,12 +77,12 @@
 }
 
 /** The frame to be displayed. */
-- (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
+- (void)renderFrame:(nullable RTC_OBJC_TYPE(LKRTCVideoFrame) *)frame {
     if (!_shouldRender) {
         return;
     }
 
-    // Convert RTCVideoFrame to CMSampleBuffer
+    // Convert LKRTCVideoFrame to CMSampleBuffer
     CMSampleBufferRef sampleBuffer = [self sampleBufferFrom:frame];
     if (sampleBuffer == nil) {
         return;
@@ -105,10 +105,10 @@
     });
 }
 
-- (CMSampleBufferRef)sampleBufferFrom:(RTCVideoFrame *)rtcVideoFrame {
-    // Convert RTCVideoFrame to CMSampleBuffer
+- (CMSampleBufferRef)sampleBufferFrom:(LKRTCVideoFrame *)rtcVideoFrame {
+    // Convert LKRTCVideoFrame to CMSampleBuffer
 
-    // Assuming your RTCVideoFrame contains pixelBuffer
+    // Assuming your LKRTCVideoFrame contains pixelBuffer
     CVPixelBufferRef pixelBuffer = [self pixelBufferFrom:rtcVideoFrame];
     if (!pixelBuffer) {
         return nil;
@@ -119,7 +119,7 @@
     CMVideoFormatDescriptionCreateForImageBuffer(kCFAllocatorDefault, pixelBuffer, &formatDescription);
 
     // Create CMSampleTimingInfo
-    // Timescale is 90khz according to RTCVideoFrame.h
+    // Timescale is 90khz according to LKRTCVideoFrame.h
     CMSampleTimingInfo timingInfo;
     timingInfo.presentationTimeStamp = CMTimeMake(rtcVideoFrame.timeStamp, 90000);
     timingInfo.decodeTimeStamp = CMTimeMake(rtcVideoFrame.timeStamp, 90000);
@@ -140,11 +140,11 @@
 /**
  * The CVPixelBufferRef returned from this function must be released when finished using it.
  */
-- (CVPixelBufferRef)pixelBufferFrom:(RTCVideoFrame *)videoFrame {
-    if ([videoFrame.buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
-        CVPixelBufferRef pixelBuffer = [((RTCCVPixelBuffer *)videoFrame.buffer) pixelBuffer];
+- (CVPixelBufferRef)pixelBufferFrom:(LKRTCVideoFrame *)videoFrame {
+    if ([videoFrame.buffer isKindOfClass:[LKRTCCVPixelBuffer class]]) {
+        CVPixelBufferRef pixelBuffer = [((LKRTCCVPixelBuffer *)videoFrame.buffer) pixelBuffer];
         CVPixelBufferRetain(pixelBuffer);
-        return [((RTCCVPixelBuffer *)videoFrame.buffer) pixelBuffer];
+        return [((LKRTCCVPixelBuffer *)videoFrame.buffer) pixelBuffer];
     } else {
         return [self pixelBufferFromI420:[videoFrame.buffer toI420]];
     }
@@ -153,7 +153,7 @@
 /**
  * The CVPixelBufferRef returned from this function must be released when finished using it.
  */
-- (CVPixelBufferRef)pixelBufferFromI420:(RTCI420Buffer *)i420Buffer {
+- (CVPixelBufferRef)pixelBufferFromI420:(LKRTCI420Buffer *)i420Buffer {
     if (_i420Converter == nil) {
         I420Converter *converter = [[I420Converter alloc] init];
         vImage_Error err = [converter prepareForAccelerateConversion];

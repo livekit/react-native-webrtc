@@ -146,11 +146,11 @@ static os_log_t ADMObserverLog(void) {
     return resultBlock();
 }
 
-#pragma mark - RTCAudioDeviceModuleDelegate
+#pragma mark - LKRTCAudioDeviceModuleDelegate
 
-- (void)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
-    didReceiveSpeechActivityEvent:(RTCSpeechActivityEvent)speechActivityEvent {
-    NSString *eventType = speechActivityEvent == RTCSpeechActivityEventStarted ? @"started" : @"ended";
+- (void)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+    didReceiveSpeechActivityEvent:(LKRTCSpeechActivityEvent)speechActivityEvent {
+    NSString *eventType = speechActivityEvent == LKRTCSpeechActivityEventStarted ? @"started" : @"ended";
 
     [self.module sendEventWithName:kEventAudioDeviceModuleSpeechActivity
                               body:@{
@@ -160,7 +160,7 @@ static os_log_t ADMObserverLog(void) {
     RCTLog(@"[AudioDeviceModuleObserver] Speech activity event: %@", eventType);
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule didCreateEngine:(AVAudioEngine *)engine {
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule didCreateEngine:(AVAudioEngine *)engine {
     BOOL isActive = self.isEngineCreatedActive;
 
     if (isActive) {
@@ -181,7 +181,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
               willEnableEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
@@ -214,7 +214,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
                willStartEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
@@ -243,7 +243,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
                  didStopEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
@@ -272,7 +272,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
               didDisableEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
@@ -301,7 +301,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule willReleaseEngine:(AVAudioEngine *)engine {
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule willReleaseEngine:(AVAudioEngine *)engine {
     BOOL isActive = self.isWillReleaseEngineActive;
 
     if (isActive) {
@@ -322,7 +322,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
                         engine:(AVAudioEngine *)engine
       configureInputFromSource:(nullable AVAudioNode *)source
                  toDestination:(AVAudioNode *)destination
@@ -332,7 +332,7 @@ static os_log_t ADMObserverLog(void) {
     return 0;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
                         engine:(AVAudioEngine *)engine
      configureOutputFromSource:(AVAudioNode *)source
                  toDestination:(nullable AVAudioNode *)destination
@@ -342,7 +342,7 @@ static os_log_t ADMObserverLog(void) {
     return 0;
 }
 
-- (void)audioDeviceModuleDidUpdateDevices:(RTCAudioDeviceModule *)audioDeviceModule {
+- (void)audioDeviceModuleDidUpdateDevices:(LKRTCAudioDeviceModule *)audioDeviceModule {
     [self.module sendEventWithName:kEventAudioDeviceModuleDevicesUpdated body:@{}];
 
     RCTLog(@"[AudioDeviceModuleObserver] Devices updated");

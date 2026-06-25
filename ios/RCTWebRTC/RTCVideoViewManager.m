@@ -5,15 +5,15 @@
 #import <React/RCTUIManager.h>
 #import <React/RCTView.h>
 
-#import <WebRTC/RTCMediaStream.h>
+#import <LiveKitWebRTC/RTCMediaStream.h>
 #if TARGET_OS_OSX
-#import <WebRTC/RTCMTLNSVideoView.h>
+#import <LiveKitWebRTC/RTCMTLNSVideoView.h>
 #else
-#import <WebRTC/RTCMTLVideoView.h>
+#import <LiveKitWebRTC/RTCMTLVideoView.h>
 #endif
-#import <WebRTC/RTCCVPixelBuffer.h>
-#import <WebRTC/RTCVideoFrame.h>
-#import <WebRTC/RTCVideoTrack.h>
+#import <LiveKitWebRTC/RTCCVPixelBuffer.h>
+#import <LiveKitWebRTC/RTCVideoFrame.h>
+#import <LiveKitWebRTC/RTCVideoTrack.h>
 
 #import "PIPController.h"
 #import "RTCVideoViewManager.h"
@@ -23,7 +23,7 @@
  * Implements an equivalent of {@code HTMLVideoElement} i.e. Web's video
  * element.
  */
-@interface RTCVideoView : RCTView<RTCVideoViewDelegate>
+@interface RTCVideoView : RCTView<LKRTCVideoViewDelegate>
 
 /**
  * The indicator which determines whether this {@code RTCVideoView} is to mirror
@@ -48,18 +48,18 @@
  * The {@link RRTCVideoRenderer} which implements the actual rendering.
  */
 #if TARGET_OS_OSX
-@property(nonatomic, readonly) RTCMTLNSVideoView *videoView;
+@property(nonatomic, readonly) LKRTCMTLNSVideoView *videoView;
 #else
-@property(nonatomic, readonly) RTCMTLVideoView *videoView;
+@property(nonatomic, readonly) LKRTCMTLVideoView *videoView;
 #endif
 
 // Add a reference to the view manager
 @property(nonatomic, weak) RTCVideoViewManager *viewManager;
 
 /**
- * The {@link RTCVideoTrack}, if any, which this instance renders.
+ * The {@link LKRTCVideoTrack}, if any, which this instance renders.
  */
-@property(nonatomic, strong) RTCVideoTrack *videoTrack;
+@property(nonatomic, strong) LKRTCVideoTrack *videoTrack;
 
 /**
  * Reference to the main WebRTC RN module.
@@ -80,12 +80,12 @@
  */
 - (void)didMoveToWindow {
     // This RTCVideoView strongly retains its videoTrack. The latter strongly
-    // retains the former as well though because RTCVideoTrack strongly retains
+    // retains the former as well though because LKRTCVideoTrack strongly retains
     // the RTCVideoRenderers added to it. In other words, there is a cycle of
     // strong retainments. In order to break the cycle, and avoid a leak,
-    // have this RTCVideoView as the RTCVideoRenderer of its
+    // have this RTCVideoView as the LKRTCVideoRenderer of its
     // videoTrack only while this view resides in a window.
-    RTCVideoTrack *videoTrack = self.videoTrack;
+    LKRTCVideoTrack *videoTrack = self.videoTrack;
 
     if (videoTrack) {
         if (self.window) {
@@ -109,11 +109,11 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
 #if TARGET_OS_OSX
-        RTCMTLNSVideoView *subview = [[RTCMTLNSVideoView alloc] initWithFrame:CGRectZero];
+        LKRTCMTLNSVideoView *subview = [[LKRTCMTLNSVideoView alloc] initWithFrame:CGRectZero];
         subview.wantsLayer = true;
         _videoView = subview;
 #else
-        RTCMTLVideoView *subview = [[RTCMTLVideoView alloc] initWithFrame:CGRectZero];
+        LKRTCMTLVideoView *subview = [[LKRTCMTLVideoView alloc] initWithFrame:CGRectZero];
         _videoView = subview;
 #endif
         _objectFit = RTCVideoViewObjectFitCover;
@@ -242,8 +242,8 @@
  * @param videoTrack The value to set on the {@code videoTrack} property of this
  * {@code RTCVideoView}.
  */
-- (void)setVideoTrack:(RTCVideoTrack *)videoTrack {
-    RTCVideoTrack *oldValue = self.videoTrack;
+- (void)setVideoTrack:(LKRTCVideoTrack *)videoTrack {
+    LKRTCVideoTrack *oldValue = self.videoTrack;
 
     if (oldValue != videoTrack) {
         if (oldValue) {
@@ -279,9 +279,9 @@
 
             CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
             int64_t time = (int64_t)(CFAbsoluteTimeGetCurrent() * 1000000000);
-            RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
-            RTCVideoFrame *frame = [[[RTCVideoFrame alloc] initWithBuffer:buffer
-                                                                 rotation:RTCVideoRotation_0
+            LKRTCCVPixelBuffer *buffer = [[LKRTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
+            LKRTCVideoFrame *frame = [[[LKRTCVideoFrame alloc] initWithBuffer:buffer
+                                                                 rotation:LKRTCVideoRotation_0
                                                               timeStampNs:time] newI420VideoFrame];
 
             [self.videoView renderFrame:frame];
@@ -358,9 +358,9 @@ RCT_CUSTOM_VIEW_PROPERTY(streamURL, NSString *, RTCVideoView) {
     WebRTCModule *module = view.module;
 
     dispatch_async(module.workerQueue, ^{
-        RTCMediaStream *stream = [module streamForReactTag:streamReactTag];
+        LKRTCMediaStream *stream = [module streamForReactTag:streamReactTag];
         NSArray *videoTracks = stream ? stream.videoTracks : @[];
-        RTCVideoTrack *videoTrack = [videoTracks firstObject];
+        LKRTCVideoTrack *videoTrack = [videoTracks firstObject];
         if (!videoTrack) {
             RCTLogWarn(@"No video stream for react tag: %@", streamReactTag);
         } else {

@@ -1,16 +1,16 @@
 #import <AVFoundation/AVFoundation.h>
-#import <WebRTC/RTCVideoCapturer.h>
+#import <LiveKitWebRTC/RTCVideoCapturer.h>
 #import "CapturerEventsDelegate.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class SocketConnection;
 
-@interface ScreenCapturer : RTCVideoCapturer
+@interface ScreenCapturer : LKRTCVideoCapturer
 
 @property(nonatomic, weak) id<CapturerEventsDelegate> eventsDelegate;
 
-- (instancetype)initWithDelegate:(__weak id<RTCVideoCapturerDelegate>)delegate;
+- (instancetype)initWithDelegate:(__weak id<LKRTCVideoCapturerDelegate>)delegate;
 - (void)startCaptureWithConnection:(nonnull SocketConnection *)connection;
 - (void)stopCapture;
 

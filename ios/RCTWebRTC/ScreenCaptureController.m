@@ -4,8 +4,8 @@
 #import "ScreenCapturer.h"
 #import "SocketConnection.h"
 
-NSString *const kRTCScreensharingSocketFD = @"rtc_SSFD";
-NSString *const kRTCAppGroupIdentifier = @"RTCAppGroupIdentifier";
+NSString *const kLKRTCScreensharingSocketFD = @"rtc_SSFD";
+NSString *const kLKRTCAppGroupIdentifier = @"LKRTCAppGroupIdentifier";
 
 @interface ScreenCaptureController ()
 
@@ -14,7 +14,7 @@ NSString *const kRTCAppGroupIdentifier = @"RTCAppGroupIdentifier";
 @end
 
 @interface ScreenCaptureController (CapturerEventsDelegate)<CapturerEventsDelegate>
-- (void)capturerDidEnd:(RTCVideoCapturer *)capturer;
+- (void)capturerDidEnd:(LKRTCVideoCapturer *)capturer;
 @end
 
 @interface ScreenCaptureController (Private)
@@ -59,7 +59,7 @@ NSString *const kRTCAppGroupIdentifier = @"RTCAppGroupIdentifier";
 }
 // MARK: CapturerEventsDelegate Methods
 
-- (void)capturerDidEnd:(RTCVideoCapturer *)capturer {
+- (void)capturerDidEnd:(LKRTCVideoCapturer *)capturer {
     [self.eventsDelegate capturerDidEnd:capturer];
 }
 
@@ -67,13 +67,13 @@ NSString *const kRTCAppGroupIdentifier = @"RTCAppGroupIdentifier";
 
 - (NSString *)appGroupIdentifier {
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-    return infoDictionary[kRTCAppGroupIdentifier];
+    return infoDictionary[kLKRTCAppGroupIdentifier];
 }
 
 - (NSString *)filePathForApplicationGroupIdentifier:(nonnull NSString *)identifier {
     NSURL *sharedContainer =
         [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:identifier];
-    NSString *socketFilePath = [[sharedContainer URLByAppendingPathComponent:kRTCScreensharingSocketFD] path];
+    NSString *socketFilePath = [[sharedContainer URLByAppendingPathComponent:kLKRTCScreensharingSocketFD] path];
 
     return socketFilePath;
 }

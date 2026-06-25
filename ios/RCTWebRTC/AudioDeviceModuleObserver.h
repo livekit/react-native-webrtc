@@ -1,9 +1,9 @@
-#import <WebRTC/WebRTC.h>
+#import <LiveKitWebRTC/LiveKitWebRTC.h>
 #import "WebRTCModule.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface AudioDeviceModuleObserver : NSObject<RTCAudioDeviceModuleDelegate>
+@interface AudioDeviceModuleObserver : NSObject<LKRTCAudioDeviceModuleDelegate>
 
 - (instancetype)initWithWebRTCModule:(WebRTCModule *)module;
 

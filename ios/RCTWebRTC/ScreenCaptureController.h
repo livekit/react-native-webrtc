@@ -4,8 +4,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const kRTCScreensharingSocketFD;
-extern NSString *const kRTCAppGroupIdentifier;
+extern NSString *const kLKRTCScreensharingSocketFD;
+extern NSString *const kLKRTCAppGroupIdentifier;
 
 @class ScreenCapturer;
 

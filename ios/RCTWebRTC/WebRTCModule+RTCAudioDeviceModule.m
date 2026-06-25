@@ -6,7 +6,7 @@
 #import "AudioDeviceModuleObserver.h"
 #import "WebRTCModule.h"
 
-@implementation WebRTCModule (RTCAudioDeviceModule)
+@implementation WebRTCModule (LKRTCAudioDeviceModule)
 
 #pragma mark - Recording & Playback Control
 
@@ -154,7 +154,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetMuteMode
                   : (NSInteger)mode resolver
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-    NSInteger result = [self.audioDeviceModule setMuteMode:(RTCAudioEngineMuteMode)mode];
+    NSInteger result = [self.audioDeviceModule setMuteMode:(LKRTCAudioEngineMuteMode)mode];
     if (result == 0) {
         resolve(nil);
     } else {
@@ -203,7 +203,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetRecordingAlwaysPreparedMode
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleGetEngineAvailability) {
-    RTCAudioEngineAvailability availability = self.audioDeviceModule.engineAvailability;
+    LKRTCAudioEngineAvailability availability = self.audioDeviceModule.engineAvailability;
     return @{
         @"isInputAvailable" : @(availability.isInputAvailable),
         @"isOutputAvailable" : @(availability.isOutputAvailable)
@@ -214,7 +214,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetEngineAvailability
                   : (NSDictionary *)availabilityDict resolver
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-    RTCAudioEngineAvailability availability;
+    LKRTCAudioEngineAvailability availability;
     availability.isInputAvailable = [availabilityDict[@"isInputAvailable"] boolValue];
     availability.isOutputAvailable = [availabilityDict[@"isOutputAvailable"] boolValue];
     NSInteger result = [self.audioDeviceModule setEngineAvailability:availability];

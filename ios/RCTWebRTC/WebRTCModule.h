@@ -5,7 +5,7 @@
 #import <React/RCTConvert.h>
 #import <React/RCTEventEmitter.h>
 
-#import <WebRTC/WebRTC.h>
+#import <LiveKitWebRTC/LiveKitWebRTC.h>
 
 static NSString *const kEventPeerConnectionSignalingStateChanged = @"peerConnectionSignalingStateChanged";
 static NSString *const kEventPeerConnectionStateChanged = @"peerConnectionStateChanged";
@@ -37,21 +37,21 @@ static NSString *const kEventAudioDeviceModuleDevicesUpdated = @"audioDeviceModu
 
 @property(nonatomic, strong) dispatch_queue_t workerQueue;
 
-@property(nonatomic, strong) RTCPeerConnectionFactory *peerConnectionFactory;
-@property(nonatomic, strong) id<RTCVideoDecoderFactory> decoderFactory;
-@property(nonatomic, strong) id<RTCVideoEncoderFactory> encoderFactory;
+@property(nonatomic, strong) LKRTCPeerConnectionFactory *peerConnectionFactory;
+@property(nonatomic, strong) id<LKRTCVideoDecoderFactory> decoderFactory;
+@property(nonatomic, strong) id<LKRTCVideoEncoderFactory> encoderFactory;
 
-@property(nonatomic, strong) NSMutableDictionary<NSNumber *, RTCPeerConnection *> *peerConnections;
-@property(nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStream *> *localStreams;
-@property(nonatomic, strong) NSMutableDictionary<NSString *, RTCMediaStreamTrack *> *localTracks;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, LKRTCPeerConnection *> *peerConnections;
+@property(nonatomic, strong) NSMutableDictionary<NSString *, LKRTCMediaStream *> *localStreams;
+@property(nonatomic, strong) NSMutableDictionary<NSString *, LKRTCMediaStreamTrack *> *localTracks;
 
-@property(nonatomic, strong) NSMutableDictionary<NSString *, RTCFrameCryptor *> *frameCryptors;
-@property(nonatomic, strong) NSMutableDictionary<NSString *, RTCFrameCryptorKeyProvider *> *keyProviders;
-@property(nonatomic, strong) NSMutableDictionary<NSString *, RTCDataPacketCryptor *> *dataPacketCryptors;
+@property(nonatomic, strong) NSMutableDictionary<NSString *, LKRTCFrameCryptor *> *frameCryptors;
+@property(nonatomic, strong) NSMutableDictionary<NSString *, LKRTCFrameCryptorKeyProvider *> *keyProviders;
+@property(nonatomic, strong) NSMutableDictionary<NSString *, LKRTCDataPacketCryptor *> *dataPacketCryptors;
 
-@property(nonatomic, readonly) RTCAudioDeviceModule *audioDeviceModule;
+@property(nonatomic, readonly) LKRTCAudioDeviceModule *audioDeviceModule;
 @property(nonatomic, strong) AudioDeviceModuleObserver *audioDeviceModuleObserver;
 
-- (RTCMediaStream *)streamForReactTag:(NSString *)reactTag;
+- (LKRTCMediaStream *)streamForReactTag:(NSString *)reactTag;
 
 @end

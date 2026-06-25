@@ -28,7 +28,7 @@
     _localStreams = nil;
 
     for (NSNumber *peerConnectionId in _peerConnections) {
-        RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
+        LKRTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
         peerConnection.delegate = nil;
         [peerConnection close];
     }
@@ -41,29 +41,29 @@
     self = [super init];
     if (self) {
         WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
-        id<RTCAudioDevice> audioDevice = options.audioDevice;
-        id<RTCVideoDecoderFactory> decoderFactory = options.videoDecoderFactory;
-        id<RTCVideoEncoderFactory> encoderFactory = options.videoEncoderFactory;
-        id<RTCAudioProcessingModule> audioProcessingModule = options.audioProcessingModule;
+        id<LKRTCAudioDevice> audioDevice = options.audioDevice;
+        id<LKRTCVideoDecoderFactory> decoderFactory = options.videoDecoderFactory;
+        id<LKRTCVideoEncoderFactory> encoderFactory = options.videoEncoderFactory;
+        id<LKRTCAudioProcessingModule> audioProcessingModule = options.audioProcessingModule;
         NSDictionary *fieldTrials = options.fieldTrials;
-        RTCLoggingSeverity loggingSeverity = options.loggingSeverity;
+        LKRTCLoggingSeverity loggingSeverity = options.loggingSeverity;
 
         // Initialize field trials.
         if (fieldTrials == nil) {
             // Fix for dual-sim connectivity:
             // https://bugs.chromium.org/p/webrtc/issues/detail?id=10966
-            fieldTrials = @{kRTCFieldTrialUseNWPathMonitor : kRTCFieldTrialEnabledValue};
+            fieldTrials = @{kLKRTCFieldTrialUseNWPathMonitor : kLKRTCFieldTrialEnabledValue};
         }
-        RTCInitFieldTrialDictionary(fieldTrials);
+        LKRTCInitFieldTrialDictionary(fieldTrials);
 
         // Initialize logging.
-        RTCSetMinDebugLogLevel(loggingSeverity);
+        LKRTCSetMinDebugLogLevel(loggingSeverity);
 
         if (encoderFactory == nil) {
-            encoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
+            encoderFactory = [[LKRTCDefaultVideoEncoderFactory alloc] init];
         }
         if (decoderFactory == nil) {
-            decoderFactory = [[RTCDefaultVideoDecoderFactory alloc] init];
+            decoderFactory = [[LKRTCDefaultVideoDecoderFactory alloc] init];
         }
         _encoderFactory = encoderFactory;
         _decoderFactory = decoderFactory;
@@ -74,14 +74,14 @@
         if (audioDevice == nil) {
             RCTLogInfo(@"Using audio processing module: %@", NSStringFromClass([audioProcessingModule class]));
             _peerConnectionFactory =
-                [[RTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:RTCAudioDeviceModuleTypeAudioEngine
+                [[LKRTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:LKRTCAudioDeviceModuleTypeAudioEngine
                                                           bypassVoiceProcessing:NO
                                                                  encoderFactory:encoderFactory
                                                                  decoderFactory:decoderFactory
                                                           audioProcessingModule:audioProcessingModule];
         } else {
             RCTLogInfo(@"Using audio device: %@", NSStringFromClass([audioDevice class]));
-            _peerConnectionFactory = [[RTCPeerConnectionFactory alloc] initWithEncoderFactory:encoderFactory
+            _peerConnectionFactory = [[LKRTCPeerConnectionFactory alloc] initWithEncoderFactory:encoderFactory
                                                                                decoderFactory:decoderFactory
                                                                                   audioDevice:audioDevice];
         }
@@ -106,11 +106,11 @@
     return self;
 }
 
-- (RTCMediaStream *)streamForReactTag:(NSString *)reactTag {
-    RTCMediaStream *stream = _localStreams[reactTag];
+- (LKRTCMediaStream *)streamForReactTag:(NSString *)reactTag {
+    LKRTCMediaStream *stream = _localStreams[reactTag];
     if (!stream) {
         for (NSNumber *peerConnectionId in _peerConnections) {
-            RTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
+            LKRTCPeerConnection *peerConnection = _peerConnections[peerConnectionId];
             stream = peerConnection.remoteStreams[reactTag];
             if (stream) {
                 break;
