@@ -1,28 +1,28 @@
-#import <WebRTC/RTCMediaStreamTrack.h>
-#import <WebRTC/RTCPeerConnectionFactory.h>
-#import <WebRTC/RTCRtpReceiver.h>
-#import <WebRTC/RTCRtpTransceiver.h>
-#import <WebRTC/RTCVideoCodecInfo.h>
+#import <LiveKitWebRTC/RTCMediaStreamTrack.h>
+#import <LiveKitWebRTC/RTCPeerConnectionFactory.h>
+#import <LiveKitWebRTC/RTCRtpReceiver.h>
+#import <LiveKitWebRTC/RTCRtpTransceiver.h>
+#import <LiveKitWebRTC/RTCVideoCodecInfo.h>
 #import "WebRTCModule+RTCPeerConnection.h"
 
 @interface SerializeUtils : NSObject
 
 + (NSString *_Nonnull)transceiverToJSONWithPeerConnectionId:(nonnull NSNumber *)id
-                                                transceiver:(RTCRtpTransceiver *_Nonnull)transceiver;
-+ (NSDictionary *_Nonnull)senderToJSONWithPeerConnectionId:(nonnull NSNumber *)id sender:(RTCRtpSender *_Nonnull)sender;
+                                                transceiver:(LKRTCRtpTransceiver *_Nonnull)transceiver;
++ (NSDictionary *_Nonnull)senderToJSONWithPeerConnectionId:(nonnull NSNumber *)id sender:(LKRTCRtpSender *_Nonnull)sender;
 + (NSDictionary *_Nonnull)receiverToJSONWithPeerConnectionId:(nonnull NSNumber *)id
-                                                    receiver:(RTCRtpReceiver *_Nonnull)receiver;
+                                                    receiver:(LKRTCRtpReceiver *_Nonnull)receiver;
 + (NSDictionary *_Nonnull)trackToJSONWithPeerConnectionId:(nonnull NSNumber *)id
-                                                    track:(RTCMediaStreamTrack *_Nonnull)track;
-+ (NSDictionary *_Nonnull)capabilitiesToJSON:(RTCRtpCapabilities *_Nonnull)capabilities;
-+ (NSDictionary *_Nonnull)codecCapabilityToJSON:(RTCRtpCodecCapability *_Nonnull)codec;
-+ (NSString *_Nonnull)serializeDirection:(RTCRtpTransceiverDirection)direction;
-+ (RTCRtpTransceiverDirection)parseDirection:(NSString *_Nonnull)direction;
-+ (RTCRtpTransceiverInit *_Nonnull)parseTransceiverOptions:(NSDictionary *_Nonnull)parameters;
-+ (NSDictionary *_Nonnull)parametersToJSON:(RTCRtpParameters *_Nonnull)parameters;
+                                                    track:(LKRTCMediaStreamTrack *_Nonnull)track;
++ (NSDictionary *_Nonnull)capabilitiesToJSON:(LKRTCRtpCapabilities *_Nonnull)capabilities;
++ (NSDictionary *_Nonnull)codecCapabilityToJSON:(LKRTCRtpCodecCapability *_Nonnull)codec;
++ (NSString *_Nonnull)serializeDirection:(LKRTCRtpTransceiverDirection)direction;
++ (LKRTCRtpTransceiverDirection)parseDirection:(NSString *_Nonnull)direction;
++ (LKRTCRtpTransceiverInit *_Nonnull)parseTransceiverOptions:(NSDictionary *_Nonnull)parameters;
++ (NSDictionary *_Nonnull)parametersToJSON:(LKRTCRtpParameters *_Nonnull)parameters;
 + (NSMutableArray *_Nonnull)constructTransceiversInfoArrayWithPeerConnection:
-    (RTCPeerConnection *_Nonnull)peerConnection;
+    (LKRTCPeerConnection *_Nonnull)peerConnection;
 + (NSDictionary *_Nonnull)streamToJSONWithPeerConnectionId:(NSNumber *_Nonnull)id
-                                                    stream:(RTCMediaStream *_Nonnull)stream
+                                                    stream:(LKRTCMediaStream *_Nonnull)stream
                                             streamReactTag:(NSString *_Nonnull)streamReactTag;
 @end

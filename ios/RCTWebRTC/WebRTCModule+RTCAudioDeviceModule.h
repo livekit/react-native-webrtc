@@ -1,5 +1,5 @@
 #import "WebRTCModule.h"
 
-@interface WebRTCModule (RTCAudioDeviceModule)
+@interface WebRTCModule (LKRTCAudioDeviceModule)
 
 @end

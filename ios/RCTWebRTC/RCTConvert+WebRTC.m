@@ -1,12 +1,12 @@
 #import <React/RCTLog.h>
-#import <WebRTC/RTCDataChannelConfiguration.h>
-#import <WebRTC/RTCIceServer.h>
-#import <WebRTC/RTCSessionDescription.h>
+#import <LiveKitWebRTC/RTCDataChannelConfiguration.h>
+#import <LiveKitWebRTC/RTCIceServer.h>
+#import <LiveKitWebRTC/RTCSessionDescription.h>
 #import "RCTConvert+WebRTC.h"
 
 @implementation RCTConvert (WebRTC)
 
-+ (RTCSessionDescription *)RTCSessionDescription:(id)json {
++ (LKRTCSessionDescription *)LKRTCSessionDescription:(id)json {
     if (!json) {
         return nil;
     }
@@ -22,12 +22,12 @@
     }
 
     NSString *sdp = json[@"sdp"];
-    RTCSdpType sdpType = [RTCSessionDescription typeForString:json[@"type"]];
+    LKRTCSdpType sdpType = [LKRTCSessionDescription typeForString:json[@"type"]];
 
-    return [[RTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
+    return [[LKRTCSessionDescription alloc] initWithType:sdpType sdp:sdp];
 }
 
-+ (RTCIceCandidate *)RTCIceCandidate:(id)json {
++ (LKRTCIceCandidate *)LKRTCIceCandidate:(id)json {
     if (!json) {
         RCTLogConvertError(json, @"must not be null");
         return nil;
@@ -53,10 +53,10 @@
     int sdpMLineIndex = [RCTConvert int:json[@"sdpMLineIndex"]];
     NSString *sdpMid = json[@"sdpMid"];
 
-    return [[RTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
+    return [[LKRTCIceCandidate alloc] initWithSdp:sdp sdpMLineIndex:sdpMLineIndex sdpMid:sdpMid];
 }
 
-+ (RTCIceServer *)RTCIceServer:(id)json {
++ (LKRTCIceServer *)LKRTCIceServer:(id)json {
     if (!json) {
         RCTLogConvertError(json, @"a valid iceServer value");
         return nil;
@@ -75,21 +75,21 @@
     }
 
     if (json[@"username"] != nil || json[@"credential"] != nil) {
-        return [[RTCIceServer alloc] initWithURLStrings:urls username:json[@"username"] credential:json[@"credential"]];
+        return [[LKRTCIceServer alloc] initWithURLStrings:urls username:json[@"username"] credential:json[@"credential"]];
     }
 
-    return [[RTCIceServer alloc] initWithURLStrings:urls];
+    return [[LKRTCIceServer alloc] initWithURLStrings:urls];
 }
 
-+ (nonnull RTCConfiguration *)RTCConfiguration:(id)json {
-    RTCConfiguration *config = [[RTCConfiguration alloc] init];
-    config.sdpSemantics = RTCSdpSemanticsUnifiedPlan;
++ (nonnull LKRTCConfiguration *)LKRTCConfiguration:(id)json {
+    LKRTCConfiguration *config = [[LKRTCConfiguration alloc] init];
+    config.sdpSemantics = LKRTCSdpSemanticsUnifiedPlan;
 
     // Required for perfect negotiation.
     config.enableImplicitRollback = YES;
 
     // Enable GCM ciphers.
-    RTCCryptoOptions *cryptoOptions = [[RTCCryptoOptions alloc] initWithSrtpEnableGcmCryptoSuites:YES
+    LKRTCCryptoOptions *cryptoOptions = [[LKRTCCryptoOptions alloc] initWithSrtpEnableGcmCryptoSuites:YES
                                                               srtpEnableAes128Sha1_32CryptoCipher:NO
                                                            srtpEnableEncryptedRtpHeaderExtensions:NO
                                                                      sframeRequireFrameEncryption:NO];
@@ -112,11 +112,11 @@
     if (json[@"bundlePolicy"] != nil && [json[@"bundlePolicy"] isKindOfClass:[NSString class]]) {
         NSString *bundlePolicy = json[@"bundlePolicy"];
         if ([bundlePolicy isEqualToString:@"balanced"]) {
-            config.bundlePolicy = RTCBundlePolicyBalanced;
+            config.bundlePolicy = LKRTCBundlePolicyBalanced;
         } else if ([bundlePolicy isEqualToString:@"max-compat"]) {
-            config.bundlePolicy = RTCBundlePolicyMaxCompat;
+            config.bundlePolicy = LKRTCBundlePolicyMaxCompat;
         } else if ([bundlePolicy isEqualToString:@"max-bundle"]) {
-            config.bundlePolicy = RTCBundlePolicyMaxBundle;
+            config.bundlePolicy = LKRTCBundlePolicyMaxBundle;
         }
     }
 
@@ -131,9 +131,9 @@
     }
 
     if (json[@"iceServers"] != nil && [json[@"iceServers"] isKindOfClass:[NSArray class]]) {
-        NSMutableArray<RTCIceServer *> *iceServers = [NSMutableArray new];
+        NSMutableArray<LKRTCIceServer *> *iceServers = [NSMutableArray new];
         for (id server in json[@"iceServers"]) {
-            RTCIceServer *convert = [RCTConvert RTCIceServer:server];
+            LKRTCIceServer *convert = [RCTConvert LKRTCIceServer:server];
             if (convert != nil) {
                 [iceServers addObject:convert];
             }
@@ -144,43 +144,43 @@
     if (json[@"iceTransportPolicy"] != nil && [json[@"iceTransportPolicy"] isKindOfClass:[NSString class]]) {
         NSString *iceTransportPolicy = json[@"iceTransportPolicy"];
         if ([iceTransportPolicy isEqualToString:@"all"]) {
-            config.iceTransportPolicy = RTCIceTransportPolicyAll;
+            config.iceTransportPolicy = LKRTCIceTransportPolicyAll;
         } else if ([iceTransportPolicy isEqualToString:@"none"]) {
-            config.iceTransportPolicy = RTCIceTransportPolicyNone;
+            config.iceTransportPolicy = LKRTCIceTransportPolicyNone;
         } else if ([iceTransportPolicy isEqualToString:@"nohost"]) {
-            config.iceTransportPolicy = RTCIceTransportPolicyNoHost;
+            config.iceTransportPolicy = LKRTCIceTransportPolicyNoHost;
         } else if ([iceTransportPolicy isEqualToString:@"relay"]) {
-            config.iceTransportPolicy = RTCIceTransportPolicyRelay;
+            config.iceTransportPolicy = LKRTCIceTransportPolicyRelay;
         }
     }
 
     if (json[@"rtcpMuxPolicy"] != nil && [json[@"rtcpMuxPolicy"] isKindOfClass:[NSString class]]) {
         NSString *rtcpMuxPolicy = json[@"rtcpMuxPolicy"];
         if ([rtcpMuxPolicy isEqualToString:@"negotiate"]) {
-            config.rtcpMuxPolicy = RTCRtcpMuxPolicyNegotiate;
+            config.rtcpMuxPolicy = LKRTCRtcpMuxPolicyNegotiate;
         } else if ([rtcpMuxPolicy isEqualToString:@"require"]) {
-            config.rtcpMuxPolicy = RTCRtcpMuxPolicyRequire;
+            config.rtcpMuxPolicy = LKRTCRtcpMuxPolicyRequire;
         }
     }
 
     if (json[@"tcpCandidatePolicy"] != nil && [json[@"tcpCandidatePolicy"] isKindOfClass:[NSString class]]) {
         NSString *tcpCandidatePolicy = json[@"tcpCandidatePolicy"];
         if ([tcpCandidatePolicy isEqualToString:@"enabled"]) {
-            config.tcpCandidatePolicy = RTCTcpCandidatePolicyEnabled;
+            config.tcpCandidatePolicy = LKRTCTcpCandidatePolicyEnabled;
         } else if ([tcpCandidatePolicy isEqualToString:@"disabled"]) {
-            config.tcpCandidatePolicy = RTCTcpCandidatePolicyDisabled;
+            config.tcpCandidatePolicy = LKRTCTcpCandidatePolicyDisabled;
         }
     }
 
     return config;
 }
 
-+ (RTCDataChannelConfiguration *)RTCDataChannelConfiguration:(id)json {
++ (LKRTCDataChannelConfiguration *)LKRTCDataChannelConfiguration:(id)json {
     if (!json) {
         return nil;
     }
     if ([json isKindOfClass:[NSDictionary class]]) {
-        RTCDataChannelConfiguration *init = [RTCDataChannelConfiguration new];
+        LKRTCDataChannelConfiguration *init = [LKRTCDataChannelConfiguration new];
 
         if (json[@"id"]) {
             [init setChannelId:[RCTConvert int:json[@"id"]]];

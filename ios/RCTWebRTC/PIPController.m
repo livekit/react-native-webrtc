@@ -79,7 +79,7 @@
     [NSLayoutConstraint activateConstraints:constraints];
 }
 
-- (void)setVideoTrack:(RTCVideoTrack *)videoTrack {
+- (void)setVideoTrack:(LKRTCVideoTrack *)videoTrack {
     if (_videoTrack != videoTrack) {
         [_videoTrack removeRenderer:_sampleView];
     }

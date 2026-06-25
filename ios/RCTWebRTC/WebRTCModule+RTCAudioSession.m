@@ -5,15 +5,15 @@
 
 #import "WebRTCModule.h"
 
-@implementation WebRTCModule (RTCAudioSession)
+@implementation WebRTCModule (LKRTCAudioSession)
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioSessionDidActivate) {
-    [[RTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];
+    [[LKRTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];
     return nil;
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioSessionDidDeactivate) {
-    [[RTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];
+    [[LKRTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];
     return nil;
 }
 

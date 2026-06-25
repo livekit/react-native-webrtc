@@ -5,7 +5,7 @@
 
 #import "ScreenCapturePickerViewManager.h"
 
-NSString *const kRTCScreenSharingExtension = @"RTCScreenSharingExtension";
+NSString *const kLKRTCScreenSharingExtension = @"LKRTCScreenSharingExtension";
 
 @implementation ScreenCapturePickerViewManager {
     RPSystemBroadcastPickerView *_broadcastPickerView;
@@ -26,7 +26,7 @@ RCT_EXPORT_MODULE()
 
 - (NSString *)preferredExtension {
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-    return infoDictionary[kRTCScreenSharingExtension];
+    return infoDictionary[kLKRTCScreenSharingExtension];
 }
 
 RCT_EXPORT_METHOD(show : (nonnull NSNumber *)reactTag) {

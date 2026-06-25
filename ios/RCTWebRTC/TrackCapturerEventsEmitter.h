@@ -8,7 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)initWith:(NSString *)trackId webRTCModule:(WebRTCModule *)module;
 
-- (void)capturerDidEnd:(RTCVideoCapturer *)capturer;
+- (void)capturerDidEnd:(LKRTCVideoCapturer *)capturer;
 @end
 
 NS_ASSUME_NONNULL_END
