@@ -305,7 +305,20 @@ static os_log_t ADMObserverLog(void) {
     // at the next full stop instead of leaking.
     if (!self.isDidDisableEngineActive &&
         (self.automaticAudioSessionConfig != nil || self.autoSessionHoldsActivation)) {
-        return [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled recording:isRecordingEnabled];
+        NSInteger result = [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled
+                                                                  recording:isRecordingEnabled];
+        if (result != 0) {
+            // didDisable fires after the engine's disable work has already run, so
+            // libwebrtc cannot roll this operation back. Propagating an error here
+            // (e.g. a failed reconfigure on a duplex to playout transition) would
+            // only desync its logical engine state from hardware that has already
+            // changed. Log and report the operation as completed. Only willEnable
+            // propagates configuration and activation errors, where the enable has
+            // not happened yet and a rollback is still meaningful.
+            os_log_error(
+                ADMObserverLog(), "Native auto-config: error %ld in didDisable treated as completed", (long)result);
+        }
+        return 0;
     }
 
     BOOL isActive = self.isDidDisableEngineActive;
@@ -499,11 +512,22 @@ static os_log_t ADMObserverLog(void) {
     if (!nowActive) {
         if (self.autoSessionHoldsActivation && [policy[@"deactivateOnStop"] boolValue]) {
             os_log_debug(ADMObserverLog(), "Native auto-config: deactivating audio session");
-            [session setActive:NO error:&error];
+            NSError *deactivateError = nil;
+            [session setActive:NO error:&deactivateError];
             // RTCAudioSession decrements its activation count even when the OS
             // session is already inactive (e.g. an interruption cleared it) or the
             // call fails, so the hold is released in every outcome.
             self.autoSessionHoldsActivation = NO;
+            if (deactivateError != nil) {
+                // Deliberately not propagated. By the time didDisable fires the
+                // engine's disable work is already done and the activation count is
+                // already released, so libwebrtc has nothing it could roll back. A
+                // non-zero return would only desync its logical engine state from
+                // hardware that is already stopped.
+                os_log_error(ADMObserverLog(),
+                             "Native auto-config: deactivation failed (continuing): %{public}@",
+                             deactivateError.localizedDescription);
+            }
         }
     } else {
         // Recording uses the duplex (playAndRecord) config, while playout-only uses
