@@ -124,7 +124,7 @@ static os_log_t ADMObserverLog(void) {
     if (!isActive) {
         // No handler registered, proceed immediately without JS round trip.
         // This avoids the deadlock window entirely.
-        os_log_debug(ADMObserverLog(), "Skipping JS round-trip for %{public}@ (no handler registered)", eventName);
+        os_log(ADMObserverLog(), "Skipping JS round-trip for %{public}@ (no handler registered)", eventName);
         return 0;
     }
 
@@ -511,7 +511,7 @@ static os_log_t ADMObserverLog(void) {
     NSError *error = nil;
     if (!nowActive) {
         if (self.autoSessionHoldsActivation && [policy[@"deactivateOnStop"] boolValue]) {
-            os_log_debug(ADMObserverLog(), "Native auto-config: deactivating audio session");
+            os_log(ADMObserverLog(), "Native auto-config: deactivating audio session");
             NSError *deactivateError = nil;
             [session setActive:NO error:&deactivateError];
             // RTCAudioSession decrements its activation count even when the OS
@@ -543,11 +543,11 @@ static os_log_t ADMObserverLog(void) {
         if (cfg[@"audioCategoryOptions"] != nil) {
             rtcConfig.categoryOptions = [self avAudioSessionCategoryOptionsFromStrings:cfg[@"audioCategoryOptions"]];
         }
-        os_log_debug(ADMObserverLog(), "Native auto-config: setting category %{public}@", rtcConfig.category);
+        os_log(ADMObserverLog(), "Native auto-config: setting category %{public}@", rtcConfig.category);
         [session setConfiguration:rtcConfig error:&error];
         if (error == nil && !session.isActive) {
             BOOL hadHold = self.autoSessionHoldsActivation;
-            os_log_debug(ADMObserverLog(), "Native auto-config: activating audio session");
+            os_log(ADMObserverLog(), "Native auto-config: activating audio session");
             [session setActive:YES error:&error];
             if (error == nil) {
                 if (hadHold) {
@@ -563,7 +563,7 @@ static os_log_t ADMObserverLog(void) {
                     // fails, and RTCAudioSession's interruption-end recovery
                     // deactivates outright at count zero. A failure must leave the
                     // prior hold untouched for that recovery to restore it.
-                    os_log_debug(ADMObserverLog(), "Native auto-config: dropping extra count after reactivating");
+                    os_log(ADMObserverLog(), "Native auto-config: dropping extra count after reactivating");
                     NSError *dropError = nil;
                     [session setActive:NO error:&dropError];
                     if (!session.isActive) {
@@ -572,7 +572,7 @@ static os_log_t ADMObserverLog(void) {
                         // the drop just gave back the count the reactivation took.
                         // Reactivate and keep that single fresh count as the hold,
                         // so even a stale hold converges to a balanced state.
-                        os_log_debug(ADMObserverLog(), "Native auto-config: reactivating after dropping a stale hold");
+                        os_log(ADMObserverLog(), "Native auto-config: reactivating after dropping a stale hold");
                         [session setActive:YES error:&error];
                     }
                 }
