@@ -21,9 +21,19 @@ NS_ASSUME_NONNULL_BEGIN
 // Native default audio-session configuration policy. When set (non-nil) and no
 // custom JS handler is registered for willEnable/didDisable, the observer
 // configures the AVAudioSession natively on the worker thread instead of doing a
-// JS round trip. Pushed once from JS, and nil disables it. Reassigning the policy
-// is safe at any time: activation state is tracked against RTCAudioSession
-// itself, not against the policy. Shape:
+// JS round trip. Pushed once from JS, and nil disables it. Reassigning or
+// clearing the policy is safe: activation state is tracked against
+// RTCAudioSession itself, not against the policy, and a hold orphaned by
+// clearing is released at the next full stop. One consequence: clearing a
+// deactivateOnStop:NO policy while the engine is already stopped keeps the
+// session activation held (and the OS session active) until the next engine
+// cycle, because no callback fires in between. Callers who need an immediate
+// release should stop under a deactivateOnStop:YES policy before clearing.
+//
+// Precedence is evaluated per hook, so custom willEnable and didDisable JS
+// handlers must be registered or cleared as a pair while a policy is set. A JS
+// handler owning one hook while the native policy owns the other can activate a
+// session that the owning regime never releases. Shape:
 //   @{ @"recording": <cfg>, @"playout": <cfg>, @"deactivateOnStop": @(BOOL) }
 // where <cfg> is @{ @"audioCategory": str, @"audioMode": str,
 //                   @"audioCategoryOptions": @[str...] }.

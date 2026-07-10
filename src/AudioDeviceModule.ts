@@ -92,6 +92,12 @@ export class AudioDeviceModule {
      * willEnable/didDisable, removing the JS round trip from the default path.
      * iOS only (including tvOS), a no-op elsewhere. The macOS build excludes
      * the audio device module natives, so this must not reach the bridge there.
+     *
+     * Requires registerGlobals() to have run first, which reconciles the native
+     * handler flags that decide precedence. Handler precedence is per hook:
+     * while a policy is set, custom willEnable/didDisable handlers must be
+     * registered or cleared as a pair, otherwise one regime can activate the
+     * session while the other never releases it.
      */
     static setAutomaticAudioSessionConfiguration(config: AutomaticAudioSessionConfiguration | null): void {
         if (Platform.OS !== 'ios' || !WebRTCModule) {
