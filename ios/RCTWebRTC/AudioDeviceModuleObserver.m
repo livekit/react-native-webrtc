@@ -300,8 +300,11 @@ static os_log_t ADMObserverLog(void) {
             isRecordingEnabled:(BOOL)isRecordingEnabled {
     // Counterpart of willEnable - apply the native session policy (here the
     // deactivate-on-stop edge) without a JS round trip when no custom handler
-    // is registered.
-    if (!self.isDidDisableEngineActive && self.automaticAudioSessionConfig != nil) {
+    // is registered. Also entered with a nil policy while an activation hold is
+    // still outstanding, so a hold orphaned by clearing the policy is released
+    // at the next full stop instead of leaking.
+    if (!self.isDidDisableEngineActive &&
+        (self.automaticAudioSessionConfig != nil || self.autoSessionHoldsActivation)) {
         return [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled recording:isRecordingEnabled];
     }
 
@@ -464,11 +467,30 @@ static os_log_t ADMObserverLog(void) {
 //   switch back to the native path) -> activate and take the hold.
 - (NSInteger)applyAutomaticAudioSessionConfigForPlayout:(BOOL)isPlayoutEnabled recording:(BOOL)isRecordingEnabled {
     NSDictionary *policy = self.automaticAudioSessionConfig;
+    BOOL nowActive = isPlayoutEnabled || isRecordingEnabled;
+
     if (policy == nil) {
+        // The policy was cleared while we still hold an activation (a setup was
+        // torn down mid-call, or a deactivateOnStop:NO policy was abandoned).
+        // Release the orphaned hold at the next full stop so the shared
+        // activation count stays balanced. No configuration is applied because
+        // the native path is disarmed.
+        if (!nowActive && self.autoSessionHoldsActivation) {
+            os_log(ADMObserverLog(), "Native auto-config: releasing orphaned activation hold");
+            RTCAudioSession *session = [RTCAudioSession sharedInstance];
+            [session lockForConfiguration];
+            NSError *releaseError = nil;
+            [session setActive:NO error:&releaseError];
+            self.autoSessionHoldsActivation = NO;
+            [session unlockForConfiguration];
+            if (releaseError != nil) {
+                os_log_error(ADMObserverLog(),
+                             "Native auto-config: orphaned hold release failed (continuing): %{public}@",
+                             releaseError.localizedDescription);
+            }
+        }
         return 0;
     }
-
-    BOOL nowActive = isPlayoutEnabled || isRecordingEnabled;
 
     RTCAudioSession *session = [RTCAudioSession sharedInstance];
     [session lockForConfiguration];
