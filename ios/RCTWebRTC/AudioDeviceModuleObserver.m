@@ -500,10 +500,39 @@ static os_log_t ADMObserverLog(void) {
         os_log_debug(ADMObserverLog(), "Native auto-config: setting category %{public}@", rtcConfig.category);
         [session setConfiguration:rtcConfig error:&error];
         if (error == nil && !session.isActive) {
+            BOOL hadHold = self.autoSessionHoldsActivation;
             os_log_debug(ADMObserverLog(), "Native auto-config: activating audio session");
             [session setActive:YES error:&error];
             if (error == nil) {
-                self.autoSessionHoldsActivation = YES;
+                if (hadHold) {
+                    // An interruption or an external deactivation (e.g. CallKit)
+                    // cleared isActive while our activation count was still held, so
+                    // the successful reactivation above stacked a second count onto
+                    // the same hold. Drop the extra count. The drop is a pure
+                    // decrement while the count sits above one, so the session stays
+                    // active.
+                    //
+                    // Ordered activate-first deliberately. Releasing before
+                    // reactivating would zero the count whenever the reactivation
+                    // fails, and RTCAudioSession's interruption-end recovery
+                    // deactivates outright at count zero. A failure must leave the
+                    // prior hold untouched for that recovery to restore it.
+                    os_log_debug(ADMObserverLog(), "Native auto-config: dropping extra count after reactivating");
+                    NSError *dropError = nil;
+                    [session setActive:NO error:&dropError];
+                    if (!session.isActive) {
+                        // The drop deactivated, which means the held count had
+                        // already been consumed by an external unmatched release and
+                        // the drop just gave back the count the reactivation took.
+                        // Reactivate and keep that single fresh count as the hold,
+                        // so even a stale hold converges to a balanced state.
+                        os_log_debug(ADMObserverLog(), "Native auto-config: reactivating after dropping a stale hold");
+                        [session setActive:YES error:&error];
+                    }
+                }
+                if (error == nil) {
+                    self.autoSessionHoldsActivation = YES;
+                }
             }
         }
     }
