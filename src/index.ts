@@ -8,7 +8,16 @@ if (WebRTCModule === null) {
     }`);
 }
 
-import { AudioDeviceModule, AudioEngineMuteMode, AudioEngineAvailability } from './AudioDeviceModule';
+import {
+    AudioDeviceModule,
+    AudioEngineMuteMode,
+    AudioEngineAvailability,
+    type AutomaticAudioSessionConfiguration,
+    type AutomaticAppleAudioConfiguration,
+    type AutomaticAppleAudioCategory,
+    type AutomaticAppleAudioMode,
+    type AutomaticAppleAudioCategoryOption,
+} from './AudioDeviceModule';
 import { audioDeviceModuleEvents } from './AudioDeviceModuleEvents';
 import { setupNativeEvents } from './EventEmitter';
 import Logger from './Logger';
@@ -87,6 +96,11 @@ export {
     AudioDeviceModule,
     AudioEngineMuteMode,
     AudioEngineAvailability,
+    type AutomaticAudioSessionConfiguration,
+    type AutomaticAppleAudioConfiguration,
+    type AutomaticAppleAudioCategory,
+    type AutomaticAppleAudioMode,
+    type AutomaticAppleAudioCategoryOption,
     audioDeviceModuleEvents,
 };
 

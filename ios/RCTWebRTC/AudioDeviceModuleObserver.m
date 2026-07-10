@@ -625,6 +625,7 @@ static os_log_t ADMObserverLog(void) {
             @"measurement" : AVAudioSessionModeMeasurement,
             @"moviePlayback" : AVAudioSessionModeMoviePlayback,
             @"spokenAudio" : AVAudioSessionModeSpokenAudio,
+            @"voicePrompt" : AVAudioSessionModeVoicePrompt,
         };
     });
     return map[value] ?: AVAudioSessionModeDefault;

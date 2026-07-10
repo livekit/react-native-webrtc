@@ -26,13 +26,46 @@ export const AudioEngineAvailability = {
 } as const;
 
 /**
+ * Accepted values mirror the native observer's friendly-name maps. Unknown
+ * values never reach the session: categories fall back to playAndRecord and
+ * modes to default, and the literal unions below reject them at compile time.
+ */
+export type AutomaticAppleAudioCategory =
+  | 'ambient'
+  | 'soloAmbient'
+  | 'playback'
+  | 'record'
+  | 'playAndRecord'
+  | 'multiRoute';
+
+export type AutomaticAppleAudioMode =
+  | 'default'
+  | 'voiceChat'
+  | 'videoChat'
+  | 'gameChat'
+  | 'videoRecording'
+  | 'measurement'
+  | 'moviePlayback'
+  | 'spokenAudio'
+  | 'voicePrompt';
+
+export type AutomaticAppleAudioCategoryOption =
+  | 'mixWithOthers'
+  | 'duckOthers'
+  | 'allowBluetooth'
+  | 'allowBluetoothA2DP'
+  | 'allowAirPlay'
+  | 'defaultToSpeaker'
+  | 'interruptSpokenAudioAndMixWithOthers';
+
+/**
  * Apple audio session configuration for a single engine state. Matches the
  * AppleAudioConfiguration shape used by AudioSession.setAppleAudioConfiguration.
  */
 export interface AutomaticAppleAudioConfiguration {
-  audioCategory?: string;
-  audioMode?: string;
-  audioCategoryOptions?: string[];
+  audioCategory?: AutomaticAppleAudioCategory;
+  audioMode?: AutomaticAppleAudioMode;
+  audioCategoryOptions?: AutomaticAppleAudioCategoryOption[];
 }
 
 /**
@@ -57,10 +90,11 @@ export class AudioDeviceModule {
      * Push (or clear with null) the native default audio-session configuration
      * policy. When set, the native observer configures the session itself in
      * willEnable/didDisable, removing the JS round trip from the default path.
-     * iOS/macOS only, a no-op on Android.
+     * iOS only (including tvOS), a no-op elsewhere. The macOS build excludes
+     * the audio device module natives, so this must not reach the bridge there.
      */
     static setAutomaticAudioSessionConfiguration(config: AutomaticAudioSessionConfiguration | null): void {
-        if (Platform.OS === 'android' || !WebRTCModule) {
+        if (Platform.OS !== 'ios' || !WebRTCModule) {
             return;
         }
 
