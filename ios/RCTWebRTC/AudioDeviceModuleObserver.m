@@ -61,12 +61,10 @@ static os_log_t ADMObserverLog(void) {
 @property(nonatomic, assign) NSInteger awaitingRequestId;
 
 // Whether the native auto-config path currently holds an
-// RTCAudioSession activation. RTCAudioSession reference-counts activations
-// (setActive:YES on an already-active session only bumps the count, and
-// setActive:NO only deactivates at count 1), so the observer must activate at
-// most once per hold and release exactly what it took, or the OS session leaks
-// active forever. Only touched on the serial delegate (worker) thread, and kept
-// atomic as cheap insurance against future cross-thread reads.
+// RTCAudioSession activation it must later release. RTCAudioSession refcounts
+// setActive, so a mismatched activate/release leaves the OS session stuck active.
+// Touched only on the serial worker thread; atomic as insurance against future
+// cross-thread reads.
 @property(atomic, assign) BOOL autoSessionHoldsActivation;
 
 @end
@@ -466,10 +464,11 @@ static os_log_t ADMObserverLog(void) {
 
 #pragma mark - Native automatic audio session configuration
 
-// Applies the pushed audio-session policy on the worker thread with no JS round
-// trip: configures on every active state, activates when the session is not
-// already active, optionally deactivates on stop, and returns a non-zero error
-// code on failure so libwebrtc rolls the operation back.
+// Applies the pushed audio-session policy on the worker thread:
+// - configures on every active state,
+// - activates when the session is not
+// - optionally deactivates on stop,
+// - returns a non-zero error code on failure so libwebrtc rolls the operation back.
 //
 // Activation is decided against RTCAudioSession's own state rather than a mirror
 // of past engine states, so a policy re-push mid-call (setupIOSAudioManagement

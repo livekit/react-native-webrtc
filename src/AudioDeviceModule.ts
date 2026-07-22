@@ -71,9 +71,10 @@ export interface AutomaticAppleAudioConfiguration {
 /**
  * Native default audio-session policy. When set, the native observer configures
  * the AVAudioSession in willEnable/didDisable without a JS round trip.
- * `recording` is applied while recording is enabled, `playout` while only
- * playout is enabled, and the session is deactivated on full stop when
- * `deactivateOnStop` is true.
+ * - `recording` is applied while recording is enabled,
+ * - `playout` is applied while only playout is enabled,
+ * - `deactivateOnStop` determines whether the session is deactivated when
+ *   neither recording nor playout is enabled.
  */
 export interface AutomaticAudioSessionConfiguration {
   recording: AutomaticAppleAudioConfiguration;
@@ -93,11 +94,16 @@ export class AudioDeviceModule {
      * iOS only (including tvOS), a no-op elsewhere. The macOS build excludes
      * the audio device module natives, so this must not reach the bridge there.
      *
-     * Requires registerGlobals() to have run first, which reconciles the native
-     * handler flags that decide precedence. Handler precedence is per hook:
+     * Handler precedence is per hook:
      * while a policy is set, custom willEnable/didDisable handlers must be
      * registered or cleared as a pair, otherwise one regime can activate the
      * session while the other never releases it.
+     *
+     * Clearing a `deactivateOnStop: false` policy while the engine is already
+     * stopped (playout and recording both disabled) keeps the session activation
+     * held until the next engine cycle, because no callback fires in between.
+     * For an immediate release, stop under `deactivateOnStop: true` before
+     * clearing.
      */
     static setAutomaticAudioSessionConfiguration(config: AutomaticAudioSessionConfiguration | null): void {
         if (Platform.OS !== 'ios' || !WebRTCModule) {

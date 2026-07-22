@@ -11,6 +11,10 @@ NS_ASSUME_NONNULL_BEGIN
 // immediately without a JS round trip, avoiding the deadlock window entirely.
 // Atomic because they are written on the JS thread (handler registration) and
 // read on the native audio thread (delegate callbacks).
+//
+// Warnings:
+// - Clear willEnable/didDisable JS handlers as a pair while a policy is set;
+//  mixed ownership can activate a session that nothing releases.
 @property(atomic, assign) BOOL isEngineCreatedActive;
 @property(atomic, assign) BOOL isWillEnableEngineActive;
 @property(atomic, assign) BOOL isWillStartEngineActive;
@@ -18,25 +22,16 @@ NS_ASSUME_NONNULL_BEGIN
 @property(atomic, assign) BOOL isDidDisableEngineActive;
 @property(atomic, assign) BOOL isWillReleaseEngineActive;
 
-// Native default audio-session configuration policy. When set (non-nil) and no
-// custom JS handler is registered for willEnable/didDisable, the observer
-// configures the AVAudioSession natively on the worker thread instead of doing a
-// JS round trip. Pushed once from JS, and nil disables it. Reassigning or
-// clearing the policy is safe: activation state is tracked against
-// RTCAudioSession itself, not against the policy, and a hold orphaned by
-// clearing is released at the next full stop. One consequence: clearing a
-// deactivateOnStop:NO policy while the engine is already stopped keeps the
-// session activation held (and the OS session active) until the next engine
-// cycle, because no callback fires in between. Callers who need an immediate
-// release should stop under a deactivateOnStop:YES policy before clearing.
-//
-// Precedence is evaluated per hook, so custom willEnable and didDisable JS
-// handlers must be registered or cleared as a pair while a policy is set. A JS
-// handler owning one hook while the native policy owns the other can activate a
-// session that the owning regime never releases. Shape:
-//   @{ @"recording": <cfg>, @"playout": <cfg>, @"deactivateOnStop": @(BOOL) }
+// Native default AVAudioSession policy. When non-nil and no JS willEnable/
+// didDisable handler is registered, applied on the worker thread. nil clears it.
+// Shape: @{ @"recording": <cfg>, @"playout": <cfg>, @"deactivateOnStop": @(BOOL) }
 // where <cfg> is @{ @"audioCategory": str, @"audioMode": str,
 //                   @"audioCategoryOptions": @[str...] }.
+//
+// Warnings:
+// - Clearing a deactivateOnStop:NO policy while the engine is already stopped
+//   keeps the activation held until the next engine cycle. For an immediate
+//   release, stop under deactivateOnStop:YES before clearing.
 @property(atomic, copy, nullable) NSDictionary *automaticAudioSessionConfig;
 
 // Methods to receive results from JS. requestId echoes the id sent with the
