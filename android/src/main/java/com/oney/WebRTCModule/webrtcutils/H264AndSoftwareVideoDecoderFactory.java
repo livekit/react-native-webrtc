@@ -2,11 +2,11 @@ package com.oney.WebRTCModule.webrtcutils;
 
 import androidx.annotation.Nullable;
 
-import org.webrtc.EglBase;
-import org.webrtc.HardwareVideoDecoderFactory;
-import org.webrtc.VideoCodecInfo;
-import org.webrtc.VideoDecoder;
-import org.webrtc.VideoDecoderFactory;
+import livekit.org.webrtc.EglBase;
+import livekit.org.webrtc.HardwareVideoDecoderFactory;
+import livekit.org.webrtc.VideoCodecInfo;
+import livekit.org.webrtc.VideoDecoder;
+import livekit.org.webrtc.VideoDecoderFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;

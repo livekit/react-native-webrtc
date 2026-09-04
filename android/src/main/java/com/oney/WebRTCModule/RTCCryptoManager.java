@@ -11,14 +11,14 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 
-import org.webrtc.DataPacketCryptor;
-import org.webrtc.FrameCryptor;
-import org.webrtc.FrameCryptorAlgorithm;
-import org.webrtc.FrameCryptorFactory;
-import org.webrtc.FrameCryptorKeyDerivationAlgorithm;
-import org.webrtc.FrameCryptorKeyProvider;
-import org.webrtc.RtpReceiver;
-import org.webrtc.RtpSender;
+import livekit.org.webrtc.DataPacketCryptor;
+import livekit.org.webrtc.FrameCryptor;
+import livekit.org.webrtc.FrameCryptorAlgorithm;
+import livekit.org.webrtc.FrameCryptorFactory;
+import livekit.org.webrtc.FrameCryptorKeyDerivationAlgorithm;
+import livekit.org.webrtc.FrameCryptorKeyProvider;
+import livekit.org.webrtc.RtpReceiver;
+import livekit.org.webrtc.RtpSender;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;

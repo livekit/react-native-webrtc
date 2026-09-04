@@ -7,7 +7,7 @@ import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 
-import org.webrtc.DataChannel;
+import livekit.org.webrtc.DataChannel;
 
 import java.nio.charset.StandardCharsets;
 

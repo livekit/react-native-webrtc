@@ -23,7 +23,7 @@ import com.oney.WebRTCModule.videoEffects.ProcessorProvider;
 import com.oney.WebRTCModule.videoEffects.VideoEffectProcessor;
 import com.oney.WebRTCModule.videoEffects.VideoFrameProcessor;
 
-import org.webrtc.*;
+import livekit.org.webrtc.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

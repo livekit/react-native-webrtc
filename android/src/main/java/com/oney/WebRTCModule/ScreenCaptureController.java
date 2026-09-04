@@ -8,8 +8,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.OrientationEventListener;
 
-import org.webrtc.ScreenCapturerAndroid;
-import org.webrtc.VideoCapturer;
+import livekit.org.webrtc.ScreenCapturerAndroid;
+import livekit.org.webrtc.VideoCapturer;
 
 public class ScreenCaptureController extends AbstractVideoCaptureController {
     /**

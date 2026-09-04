@@ -2,10 +2,10 @@ package com.oney.WebRTCModule.webrtcutils;
 
 import androidx.annotation.Nullable;
 
-import org.webrtc.SoftwareVideoEncoderFactory;
-import org.webrtc.VideoCodecInfo;
-import org.webrtc.VideoEncoder;
-import org.webrtc.VideoEncoderFactory;
+import livekit.org.webrtc.SoftwareVideoEncoderFactory;
+import livekit.org.webrtc.VideoCodecInfo;
+import livekit.org.webrtc.VideoEncoder;
+import livekit.org.webrtc.VideoEncoderFactory;
 
 /**
  * Helper proxy factory for the software codecs. Starting with M111 SoftwareVideoEncoderFactory

@@ -1,11 +1,11 @@
 package com.oney.WebRTCModule;
 
-import org.webrtc.AudioProcessingFactory;
-import org.webrtc.Loggable;
-import org.webrtc.Logging;
-import org.webrtc.VideoDecoderFactory;
-import org.webrtc.VideoEncoderFactory;
-import org.webrtc.audio.AudioDeviceModule;
+import livekit.org.webrtc.AudioProcessingFactory;
+import livekit.org.webrtc.Loggable;
+import livekit.org.webrtc.Logging;
+import livekit.org.webrtc.VideoDecoderFactory;
+import livekit.org.webrtc.VideoEncoderFactory;
+import livekit.org.webrtc.audio.AudioDeviceModule;
 
 import java.util.concurrent.Callable;
 

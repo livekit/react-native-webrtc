@@ -8,7 +8,7 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
-import org.webrtc.*;
+import livekit.org.webrtc.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

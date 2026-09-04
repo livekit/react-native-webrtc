@@ -7,7 +7,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 
-import org.webrtc.VideoCapturer;
+import livekit.org.webrtc.VideoCapturer;
 
 public abstract class AbstractVideoCaptureController {
     protected int targetWidth;

@@ -5,8 +5,8 @@ import android.util.*;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 
-import org.webrtc.CapturerObserver;
-import org.webrtc.VideoFrame;
+import livekit.org.webrtc.CapturerObserver;
+import livekit.org.webrtc.VideoFrame;
 
 /**
  * A capturer observer that emits track ended events when the capturer is stopped.

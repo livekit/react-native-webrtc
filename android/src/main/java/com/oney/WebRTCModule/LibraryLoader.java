@@ -1,7 +1,7 @@
 package com.oney.WebRTCModule;
 
-import org.webrtc.Logging;
-import org.webrtc.NativeLibraryLoader;
+import livekit.org.webrtc.Logging;
+import livekit.org.webrtc.NativeLibraryLoader;
 
 /**
  * Custom library loader. WebRTC's default library loader swallows errors, which

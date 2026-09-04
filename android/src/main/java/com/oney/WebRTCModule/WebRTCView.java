@@ -17,14 +17,14 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 
-import org.webrtc.EglBase;
-import org.webrtc.Logging;
-import org.webrtc.MediaStream;
-import org.webrtc.RendererCommon;
-import org.webrtc.RendererCommon.RendererEvents;
-import org.webrtc.RendererCommon.ScalingType;
-import org.webrtc.SurfaceViewRenderer;
-import org.webrtc.VideoTrack;
+import livekit.org.webrtc.EglBase;
+import livekit.org.webrtc.Logging;
+import livekit.org.webrtc.MediaStream;
+import livekit.org.webrtc.RendererCommon;
+import livekit.org.webrtc.RendererCommon.RendererEvents;
+import livekit.org.webrtc.RendererCommon.ScalingType;
+import livekit.org.webrtc.SurfaceViewRenderer;
+import livekit.org.webrtc.VideoTrack;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
