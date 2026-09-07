@@ -1,7 +1,7 @@
-#import <React/RCTLog.h>
 #import <LiveKitWebRTC/RTCDataChannelConfiguration.h>
 #import <LiveKitWebRTC/RTCIceServer.h>
 #import <LiveKitWebRTC/RTCSessionDescription.h>
+#import <React/RCTLog.h>
 #import "RCTConvert+WebRTC.h"
 
 @implementation RCTConvert (WebRTC)
@@ -75,7 +75,9 @@
     }
 
     if (json[@"username"] != nil || json[@"credential"] != nil) {
-        return [[LKRTCIceServer alloc] initWithURLStrings:urls username:json[@"username"] credential:json[@"credential"]];
+        return [[LKRTCIceServer alloc] initWithURLStrings:urls
+                                                 username:json[@"username"]
+                                               credential:json[@"credential"]];
     }
 
     return [[LKRTCIceServer alloc] initWithURLStrings:urls];
@@ -90,9 +92,9 @@
 
     // Enable GCM ciphers.
     LKRTCCryptoOptions *cryptoOptions = [[LKRTCCryptoOptions alloc] initWithSrtpEnableGcmCryptoSuites:YES
-                                                              srtpEnableAes128Sha1_32CryptoCipher:NO
-                                                           srtpEnableEncryptedRtpHeaderExtensions:NO
-                                                                     sframeRequireFrameEncryption:NO];
+                                                                  srtpEnableAes128Sha1_32CryptoCipher:NO
+                                                               srtpEnableEncryptedRtpHeaderExtensions:NO
+                                                                         sframeRequireFrameEncryption:NO];
     config.cryptoOptions = cryptoOptions;
 
     if (!json) {

@@ -281,8 +281,8 @@
             int64_t time = (int64_t)(CFAbsoluteTimeGetCurrent() * 1000000000);
             LKRTCCVPixelBuffer *buffer = [[LKRTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
             LKRTCVideoFrame *frame = [[[LKRTCVideoFrame alloc] initWithBuffer:buffer
-                                                                 rotation:LKRTCVideoRotation_0
-                                                              timeStampNs:time] newI420VideoFrame];
+                                                                     rotation:LKRTCVideoRotation_0
+                                                                  timeStampNs:time] newI420VideoFrame];
 
             [self.videoView renderFrame:frame];
 

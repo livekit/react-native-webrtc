@@ -15,10 +15,10 @@
 @interface WebRTCModule (RTCPeerConnection)<LKRTCPeerConnectionDelegate>
 
 - (nullable LKRTCRtpSender *)getSenderByPeerConnectionId:(nonnull NSNumber *)peerConnectionId
-                                              senderId:(nonnull NSString *)senderId;
+                                                senderId:(nonnull NSString *)senderId;
 - (nullable LKRTCRtpReceiver *)getReceiverByPeerConnectionId:(nonnull NSNumber *)peerConnectionId
-                                                receiverId:(nonnull NSString *)receiverId;
+                                                  receiverId:(nonnull NSString *)receiverId;
 - (nullable LKRTCRtpTransceiver *)getTransceiverByPeerConnectionId:(nonnull NSNumber *)peerConnectionId
-                                                   transceiverId:(nonnull NSString *)transceiverId;
+                                                     transceiverId:(nonnull NSString *)transceiverId;
 
 @end

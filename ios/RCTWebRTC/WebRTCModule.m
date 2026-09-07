@@ -75,15 +75,15 @@
             RCTLogInfo(@"Using audio processing module: %@", NSStringFromClass([audioProcessingModule class]));
             _peerConnectionFactory =
                 [[LKRTCPeerConnectionFactory alloc] initWithAudioDeviceModuleType:LKRTCAudioDeviceModuleTypeAudioEngine
-                                                          bypassVoiceProcessing:NO
-                                                                 encoderFactory:encoderFactory
-                                                                 decoderFactory:decoderFactory
-                                                          audioProcessingModule:audioProcessingModule];
+                                                            bypassVoiceProcessing:NO
+                                                                   encoderFactory:encoderFactory
+                                                                   decoderFactory:decoderFactory
+                                                            audioProcessingModule:audioProcessingModule];
         } else {
             RCTLogInfo(@"Using audio device: %@", NSStringFromClass([audioDevice class]));
             _peerConnectionFactory = [[LKRTCPeerConnectionFactory alloc] initWithEncoderFactory:encoderFactory
-                                                                               decoderFactory:decoderFactory
-                                                                                  audioDevice:audioDevice];
+                                                                                 decoderFactory:decoderFactory
+                                                                                    audioDevice:audioDevice];
         }
 
         _peerConnections = [NSMutableDictionary new];

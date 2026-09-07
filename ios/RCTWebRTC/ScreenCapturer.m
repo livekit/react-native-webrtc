@@ -2,9 +2,9 @@
 
 #include <mach/mach_time.h>
 
-#import <ReplayKit/ReplayKit.h>
 #import <LiveKitWebRTC/RTCCVPixelBuffer.h>
 #import <LiveKitWebRTC/RTCVideoFrameBuffer.h>
+#import <ReplayKit/ReplayKit.h>
 
 #import "ScreenCapturer.h"
 #import "SocketConnection.h"
@@ -227,8 +227,8 @@ const NSUInteger kMaxReadLength = 10 * 1024;
     }
 
     LKRTCVideoFrame *videoFrame = [[LKRTCVideoFrame alloc] initWithBuffer:rtcPixelBuffer
-                                                             rotation:rotation
-                                                          timeStampNs:frameTimeStampNs];
+                                                                 rotation:rotation
+                                                              timeStampNs:frameTimeStampNs];
 
     [self.delegate capturer:self didCaptureVideoFrame:videoFrame];
 }

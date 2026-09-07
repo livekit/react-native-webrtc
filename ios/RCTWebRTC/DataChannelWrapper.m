@@ -21,7 +21,8 @@
     return self;
 }
 
-- (void)dataChannel:(nonnull LKRTCDataChannel *)dataChannel didReceiveMessageWithBuffer:(nonnull LKRTCDataBuffer *)buffer {
+- (void)dataChannel:(nonnull LKRTCDataChannel *)dataChannel
+    didReceiveMessageWithBuffer:(nonnull LKRTCDataBuffer *)buffer {
     if (_delegate) {
         [_delegate dataChannel:self didReceiveMessageWithBuffer:buffer];
     }

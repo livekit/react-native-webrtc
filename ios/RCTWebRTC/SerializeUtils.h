@@ -9,7 +9,8 @@
 
 + (NSString *_Nonnull)transceiverToJSONWithPeerConnectionId:(nonnull NSNumber *)id
                                                 transceiver:(LKRTCRtpTransceiver *_Nonnull)transceiver;
-+ (NSDictionary *_Nonnull)senderToJSONWithPeerConnectionId:(nonnull NSNumber *)id sender:(LKRTCRtpSender *_Nonnull)sender;
++ (NSDictionary *_Nonnull)senderToJSONWithPeerConnectionId:(nonnull NSNumber *)id
+                                                    sender:(LKRTCRtpSender *_Nonnull)sender;
 + (NSDictionary *_Nonnull)receiverToJSONWithPeerConnectionId:(nonnull NSNumber *)id
                                                     receiver:(LKRTCRtpReceiver *_Nonnull)receiver;
 + (NSDictionary *_Nonnull)trackToJSONWithPeerConnectionId:(nonnull NSNumber *)id
