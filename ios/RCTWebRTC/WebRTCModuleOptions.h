@@ -1,16 +1,16 @@
 #import <Foundation/Foundation.h>
-#import <WebRTC/WebRTC.h>
+#import <LiveKitWebRTC/LiveKitWebRTC.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface WebRTCModuleOptions : NSObject
 
-@property(nonatomic, strong, nullable) id<RTCVideoDecoderFactory> videoDecoderFactory;
-@property(nonatomic, strong, nullable) id<RTCVideoEncoderFactory> videoEncoderFactory;
-@property(nonatomic, strong, nullable) id<RTCAudioDevice> audioDevice;
-@property(nonatomic, strong, nullable) id<RTCAudioProcessingModule> audioProcessingModule;
+@property(nonatomic, strong, nullable) id<LKRTCVideoDecoderFactory> videoDecoderFactory;
+@property(nonatomic, strong, nullable) id<LKRTCVideoEncoderFactory> videoEncoderFactory;
+@property(nonatomic, strong, nullable) id<LKRTCAudioDevice> audioDevice;
+@property(nonatomic, strong, nullable) id<LKRTCAudioProcessingModule> audioProcessingModule;
 @property(nonatomic, strong, nullable) NSDictionary *fieldTrials;
-@property(nonatomic, assign) RTCLoggingSeverity loggingSeverity;
+@property(nonatomic, assign) LKRTCLoggingSeverity loggingSeverity;
 @property(nonatomic, assign) BOOL enableMultitaskingCameraAccess;
 
 @property(nonatomic, assign) double defaultTrackVolume;

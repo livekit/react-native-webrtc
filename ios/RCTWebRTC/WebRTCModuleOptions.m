@@ -21,7 +21,7 @@
         self.fieldTrials = nil;
         self.videoEncoderFactory = nil;
         self.videoDecoderFactory = nil;
-        self.loggingSeverity = RTCLoggingSeverityNone;
+        self.loggingSeverity = LKRTCLoggingSeverityNone;
         self.defaultTrackVolume = 1.0;
     }
 

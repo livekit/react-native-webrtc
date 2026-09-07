@@ -3,8 +3,8 @@
 #include <mach/mach_time.h>
 
 #import <ReplayKit/ReplayKit.h>
-#import <WebRTC/RTCCVPixelBuffer.h>
-#import <WebRTC/RTCVideoFrameBuffer.h>
+#import <LiveKitWebRTC/RTCCVPixelBuffer.h>
+#import <LiveKitWebRTC/RTCVideoFrameBuffer.h>
 
 #import "ScreenCapturer.h"
 #import "SocketConnection.h"
@@ -136,7 +136,7 @@ const NSUInteger kMaxReadLength = 10 * 1024;
     int64_t _startTimeStampNs;
 }
 
-- (instancetype)initWithDelegate:(__weak id<RTCVideoCapturerDelegate>)delegate {
+- (instancetype)initWithDelegate:(__weak id<LKRTCVideoCapturerDelegate>)delegate {
     self = [super initWithDelegate:delegate];
     if (self) {
         mach_timebase_info(&_timebaseInfo);
@@ -207,26 +207,26 @@ const NSUInteger kMaxReadLength = 10 * 1024;
         _startTimeStampNs = currentTimeStampNs;
     }
 
-    RTCCVPixelBuffer *rtcPixelBuffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
+    LKRTCCVPixelBuffer *rtcPixelBuffer = [[LKRTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
     int64_t frameTimeStampNs = currentTimeStampNs - _startTimeStampNs;
 
-    RTCVideoRotation rotation;
+    LKRTCVideoRotation rotation;
     switch (orientation) {
         case kCGImagePropertyOrientationLeft:
-            rotation = RTCVideoRotation_90;
+            rotation = LKRTCVideoRotation_90;
             break;
         case kCGImagePropertyOrientationDown:
-            rotation = RTCVideoRotation_180;
+            rotation = LKRTCVideoRotation_180;
             break;
         case kCGImagePropertyOrientationRight:
-            rotation = RTCVideoRotation_270;
+            rotation = LKRTCVideoRotation_270;
             break;
         default:
-            rotation = RTCVideoRotation_0;
+            rotation = LKRTCVideoRotation_0;
             break;
     }
 
-    RTCVideoFrame *videoFrame = [[RTCVideoFrame alloc] initWithBuffer:rtcPixelBuffer
+    LKRTCVideoFrame *videoFrame = [[LKRTCVideoFrame alloc] initWithBuffer:rtcPixelBuffer
                                                              rotation:rotation
                                                           timeStampNs:frameTimeStampNs];
 

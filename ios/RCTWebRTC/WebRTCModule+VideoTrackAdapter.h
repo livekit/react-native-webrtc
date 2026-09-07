@@ -1,12 +1,12 @@
 
-#import <WebRTC/RTCPeerConnection.h>
+#import <LiveKitWebRTC/RTCPeerConnection.h>
 #import "WebRTCModule.h"
 
-@interface RTCPeerConnection (VideoTrackAdapter)
+@interface LKRTCPeerConnection (VideoTrackAdapter)
 
 @property(nonatomic, strong) NSMutableDictionary<NSString *, id> *videoTrackAdapters;
 
-- (void)addVideoTrackAdapter:(RTCVideoTrack *)track;
-- (void)removeVideoTrackAdapter:(RTCVideoTrack *)track;
+- (void)addVideoTrackAdapter:(LKRTCVideoTrack *)track;
+- (void)removeVideoTrackAdapter:(LKRTCVideoTrack *)track;
 
 @end

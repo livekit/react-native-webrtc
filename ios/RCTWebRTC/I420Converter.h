@@ -10,13 +10,13 @@
 
 #import <Accelerate/Accelerate.h>
 #import <UIKit/UIKit.h>
-#import <WebRTC/WebRTC.h>
+#import <LiveKitWebRTC/LiveKitWebRTC.h>
 
 @interface I420Converter : NSObject
 
 - (vImage_Error)prepareForAccelerateConversion;
 - (void)unprepareForAccelerateConversion;
-- (CVPixelBufferRef)convertI420ToPixelBuffer:(RTCI420Buffer *)buffer;
+- (CVPixelBufferRef)convertI420ToPixelBuffer:(LKRTCI420Buffer *)buffer;
 - (void)createPixelBufferPoolWithWidth:(size_t)width height:(size_t)height;
 
 @end
