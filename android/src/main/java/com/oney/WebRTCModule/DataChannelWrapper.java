@@ -7,9 +7,9 @@ import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 
-import livekit.org.webrtc.DataChannel;
-
 import java.nio.charset.StandardCharsets;
+
+import livekit.org.webrtc.DataChannel;
 
 class DataChannelWrapper implements DataChannel.Observer {
     private final String reactTag;

@@ -11,6 +11,13 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+
 import livekit.org.webrtc.AudioTrack;
 import livekit.org.webrtc.DataChannel;
 import livekit.org.webrtc.IceCandidate;
@@ -23,13 +30,6 @@ import livekit.org.webrtc.RtpSender;
 import livekit.org.webrtc.RtpTransceiver;
 import livekit.org.webrtc.SessionDescription;
 import livekit.org.webrtc.VideoTrack;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 
 class PeerConnectionObserver implements PeerConnection.Observer {
     private final static String TAG = WebRTCModule.TAG;

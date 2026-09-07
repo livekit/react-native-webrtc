@@ -5,12 +5,12 @@ import android.util.*;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import livekit.org.webrtc.VideoFrame;
 import livekit.org.webrtc.VideoSink;
 import livekit.org.webrtc.VideoTrack;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Implements mute/unmute events for remote video tracks.
