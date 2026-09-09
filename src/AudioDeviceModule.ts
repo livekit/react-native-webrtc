@@ -1,5 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 
+import permissions from './Permissions';
+
 const { WebRTCModule } = NativeModules;
 
 export enum AudioEngineMuteMode {
@@ -136,12 +138,30 @@ export class AudioDeviceModule {
     }
 
     /**
-     * Start audio recording
+     * Requests microphone permission and rejects when it is not granted.
+     * The audio engine only passively checks permission when enabling input
+     * and never prompts, so recording entry points must request it up front,
+     * the same way getUserMedia does.
+     */
+    private static async requestMicrophonePermission(): Promise<void> {
+        const granted = await permissions.request({ name: 'microphone' });
+
+        if (!granted) {
+            throw new Error('Microphone permission not granted');
+        }
+    }
+
+    /**
+     * Start audio recording.
+     *
+     * Requests microphone permission first and rejects when it is denied.
      */
     static async startRecording(): Promise<void> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
         }
+
+        await AudioDeviceModule.requestMicrophonePermission();
 
         return WebRTCModule.audioDeviceModuleStartRecording();
     }
@@ -159,11 +179,15 @@ export class AudioDeviceModule {
 
     /**
      * Initialize and start local audio recording (calls initAndStartRecording)
+     *
+     * Requests microphone permission first and rejects when it is denied.
      */
     static async startLocalRecording(): Promise<void> {
         if (Platform.OS === 'android') {
             throw new Error('AudioDeviceModule is only available on iOS/macOS');
         }
+
+        await AudioDeviceModule.requestMicrophonePermission();
 
         return WebRTCModule.audioDeviceModuleStartLocalRecording();
     }
@@ -401,6 +425,12 @@ export class AudioDeviceModule {
 
     /**
      * Set the engine availability (input/output availability)
+     *
+     * Restoring input availability does not request microphone permission,
+     * since this can run in the background where no prompt is possible. A
+     * recording requested while input was unavailable is honored on re-enable,
+     * but the engine only passively checks permission at that point, so make
+     * sure permission is already granted before restoring input availability.
      */
     static async setEngineAvailability(availability: AudioEngineAvailability): Promise<void> {
         if (Platform.OS === 'android') {
