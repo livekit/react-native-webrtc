@@ -20,11 +20,14 @@ Older versions of tvOS don't support WebRTC.
 platform :tvos, '16.0'
 ```
 
-## Adding the LiveKit podspec source
+## Pod source
 
-The native module depends on the `LiveKitWebRTC` pod, which is published from the
-[livekit/podspecs](https://github.com/livekit/podspecs) repository rather than the CocoaPods trunk.
-Add both sources at the top of your `Podfile`:
+The native module depends on the `LiveKitWebRTC` pod, which is published on the
+CocoaPods trunk, so no extra `source` lines are needed in your `Podfile`.
+
+If a `LiveKitWebRTC` version has not reached the trunk CDN yet, the
+[livekit/podspecs](https://github.com/livekit/podspecs) repository serves the
+same podspecs and can be added as an additional source:
 
 ```ruby
 source 'https://cdn.cocoapods.org/'
