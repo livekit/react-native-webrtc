@@ -74,12 +74,23 @@ export interface AutomaticAppleAudioConfiguration {
  * Native default audio-session policy. When set, the native observer configures
  * the AVAudioSession in willEnable/didDisable without a JS round trip.
  * - `recording` is applied while recording is enabled,
+ * - `recordingWithoutVoiceProcessing`, when given, replaces `recording` while
+ *   Apple Voice Processing I/O is off,
  * - `playout` is applied while only playout is enabled,
  * - `deactivateOnStop` determines whether the session is deactivated when
  *   neither recording nor playout is enabled.
  */
 export interface AutomaticAudioSessionConfiguration {
   recording: AutomaticAppleAudioConfiguration;
+  /**
+   * Recording config to use while Apple Voice Processing I/O is off, for
+   * example after {@link AudioDeviceModule.setVoiceProcessingEnabled}(false).
+   * The voiceChat/videoChat modes engage iOS's call-tuned speaker gain, which
+   * only VPIO compensates for, so a policy that uses them should supply a
+   * `default`-mode variant here to keep remote audio at media loudness.
+   * Optional - when omitted, `recording` is used in both cases.
+   */
+  recordingWithoutVoiceProcessing?: AutomaticAppleAudioConfiguration;
   playout: AutomaticAppleAudioConfiguration;
   deactivateOnStop: boolean;
 }

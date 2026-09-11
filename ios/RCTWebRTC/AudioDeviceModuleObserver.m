@@ -67,6 +67,14 @@ static os_log_t ADMObserverLog(void) {
 // cross-thread reads.
 @property(atomic, assign) BOOL autoSessionHoldsActivation;
 
+// Last Apple Voice Processing I/O state reported by willEnableEngine. Only that
+// callback carries it: by the time didDisable fires the input path is already
+// torn down, so neither the callback nor a readback from the module can say what
+// the engine was running with. Cached so didDisable reconfigures with the same
+// variant willEnable applied. Touched only on the serial worker thread; atomic as
+// insurance against future cross-thread reads.
+@property(atomic, assign) BOOL lastVoiceProcessingEnabled;
+
 @end
 
 @implementation AudioDeviceModuleObserver
@@ -196,27 +204,35 @@ static os_log_t ADMObserverLog(void) {
 - (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
               willEnableEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
-            isRecordingEnabled:(BOOL)isRecordingEnabled {
+            isRecordingEnabled:(BOOL)isRecordingEnabled
+      isVoiceProcessingEnabled:(BOOL)isVoiceProcessingEnabled {
+    self.lastVoiceProcessingEnabled = isVoiceProcessingEnabled;
+
     // With no custom JS handler registered, configure the audio session natively
     // here instead of doing a JS round trip. This is the default path and avoids
     // parking the audio worker thread on the JS thread entirely. A custom handler
     // (isWillEnableEngineActive == YES) falls through to the bounded round trip.
     if (!self.isWillEnableEngineActive && self.automaticAudioSessionConfig != nil) {
-        return [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled recording:isRecordingEnabled];
+        return [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled
+                                                      recording:isRecordingEnabled
+                                                voiceProcessing:isVoiceProcessingEnabled];
     }
 
     BOOL isActive = self.isWillEnableEngineActive;
 
     if (isActive) {
-        RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - playout: %d, recording: %d - waiting for JS response",
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - playout: %d, recording: %d, voiceProcessing: %d - "
+               @"waiting for JS response",
                isPlayoutEnabled,
-               isRecordingEnabled);
+               isRecordingEnabled,
+               isVoiceProcessingEnabled);
     }
 
     NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineWillEnable
                                                  body:@{
                                                      @"isPlayoutEnabled" : @(isPlayoutEnabled),
                                                      @"isRecordingEnabled" : @(isRecordingEnabled),
+                                                     @"isVoiceProcessingEnabled" : @(isVoiceProcessingEnabled),
                                                  }
                                             semaphore:self.willEnableEngineSemaphore
                                           resultBlock:^NSInteger {
@@ -304,7 +320,8 @@ static os_log_t ADMObserverLog(void) {
     if (!self.isDidDisableEngineActive &&
         (self.automaticAudioSessionConfig != nil || self.autoSessionHoldsActivation)) {
         NSInteger result = [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled
-                                                                  recording:isRecordingEnabled];
+                                                                  recording:isRecordingEnabled
+                                                            voiceProcessing:self.lastVoiceProcessingEnabled];
         if (result != 0) {
             // didDisable fires after the engine's disable work has already run, so
             // libwebrtc cannot roll this operation back. Propagating an error here
@@ -331,6 +348,7 @@ static os_log_t ADMObserverLog(void) {
                                                  body:@{
                                                      @"isPlayoutEnabled" : @(isPlayoutEnabled),
                                                      @"isRecordingEnabled" : @(isRecordingEnabled),
+                                                     @"isVoiceProcessingEnabled" : @(self.lastVoiceProcessingEnabled),
                                                  }
                                             semaphore:self.didDisableEngineSemaphore
                                           resultBlock:^NSInteger {
@@ -477,7 +495,9 @@ static os_log_t ADMObserverLog(void) {
 //   reconfigure only, never a second refcounted activation.
 // - session inactive (fresh start, or the custom path deactivated it before a
 //   switch back to the native path) -> activate and take the hold.
-- (NSInteger)applyAutomaticAudioSessionConfigForPlayout:(BOOL)isPlayoutEnabled recording:(BOOL)isRecordingEnabled {
+- (NSInteger)applyAutomaticAudioSessionConfigForPlayout:(BOOL)isPlayoutEnabled
+                                              recording:(BOOL)isRecordingEnabled
+                                        voiceProcessing:(BOOL)isVoiceProcessingEnabled {
     NSDictionary *policy = self.automaticAudioSessionConfig;
     BOOL nowActive = isPlayoutEnabled || isRecordingEnabled;
 
@@ -531,7 +551,21 @@ static os_log_t ADMObserverLog(void) {
     } else {
         // Recording uses the duplex (playAndRecord) config, while playout-only uses
         // the playback config. Both are supplied by the SDK in automaticAudioSessionConfig.
-        NSDictionary *cfg = isRecordingEnabled ? policy[@"recording"] : policy[@"playout"];
+        //
+        // The voiceChat/videoChat modes engage iOS's call-tuned speaker gain while
+        // capture is active. Apple Voice Processing I/O compensates with its own
+        // loudness stage; with VPIO off nothing does and remote audio plays back
+        // noticeably quieter, so the SDK supplies a separate recording variant for
+        // that case. It is optional, so a policy from an SDK predating it keeps the
+        // previous behavior.
+        NSDictionary *cfg;
+        if (!isRecordingEnabled) {
+            cfg = policy[@"playout"];
+        } else if (!isVoiceProcessingEnabled && policy[@"recordingWithoutVoiceProcessing"] != nil) {
+            cfg = policy[@"recordingWithoutVoiceProcessing"];
+        } else {
+            cfg = policy[@"recording"];
+        }
         LKRTCAudioSessionConfiguration *rtcConfig = [LKRTCAudioSessionConfiguration webRTCConfiguration];
         if (cfg[@"audioCategory"] != nil) {
             rtcConfig.category = [self avAudioSessionCategoryFromString:cfg[@"audioCategory"]];
