@@ -3,7 +3,7 @@ package com.oney.WebRTCModule;
 import android.os.Build.VERSION;
 import android.util.Log;
 
-import org.webrtc.EglBase;
+import livekit.org.webrtc.EglBase;
 
 public class EglUtils {
     /**

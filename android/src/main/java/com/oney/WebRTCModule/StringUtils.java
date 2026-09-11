@@ -2,11 +2,11 @@ package com.oney.WebRTCModule;
 
 import android.util.Log;
 
-import org.webrtc.PeerConnection;
-import org.webrtc.RTCStats;
-import org.webrtc.RTCStatsReport;
-
 import java.util.Map;
+
+import livekit.org.webrtc.PeerConnection;
+import livekit.org.webrtc.RTCStats;
+import livekit.org.webrtc.RTCStatsReport;
 
 public class StringUtils {
     private static final String TAG = StringUtils.class.getSimpleName();

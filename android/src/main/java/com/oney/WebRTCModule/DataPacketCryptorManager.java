@@ -2,12 +2,12 @@ package com.oney.WebRTCModule;
 
 import android.util.Log;
 
-import org.webrtc.DataPacketCryptor;
-import org.webrtc.DataPacketCryptorFactory;
-import org.webrtc.FrameCryptorAlgorithm;
-import org.webrtc.FrameCryptorKeyProvider;
-
 import javax.annotation.Nullable;
+
+import livekit.org.webrtc.DataPacketCryptor;
+import livekit.org.webrtc.DataPacketCryptorFactory;
+import livekit.org.webrtc.FrameCryptorAlgorithm;
+import livekit.org.webrtc.FrameCryptorKeyProvider;
 
 public class DataPacketCryptorManager {
     private static final String TAG = DataPacketCryptorManager.class.getSimpleName();

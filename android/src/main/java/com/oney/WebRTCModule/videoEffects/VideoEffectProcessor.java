@@ -1,11 +1,11 @@
 package com.oney.WebRTCModule.videoEffects;
 
-import org.webrtc.SurfaceTextureHelper;
-import org.webrtc.VideoFrame;
-import org.webrtc.VideoProcessor;
-import org.webrtc.VideoSink;
-
 import java.util.List;
+
+import livekit.org.webrtc.SurfaceTextureHelper;
+import livekit.org.webrtc.VideoFrame;
+import livekit.org.webrtc.VideoProcessor;
+import livekit.org.webrtc.VideoSink;
 
 /**
  * Lightweight abstraction for an object that can receive video frames, process and add effects in

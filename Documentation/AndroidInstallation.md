@@ -73,7 +73,7 @@ if your Android files are written in Java, modify `MainApplication.java`:
 // add imports
 import com.oney.WebRTCModule.WebRTCModuleOptions;
 import android.media.AudioAttributes;
-import org.webrtc.audio.JavaAudioDeviceModule;
+import livekit.org.webrtc.audio.JavaAudioDeviceModule;
 
 public class MainApplication extends Application implements ReactApplication {
 	@Override
@@ -96,7 +96,7 @@ if your Android files are written in Kotlin, modify `MainApplication.kt`:
 // add imports
 import com.oney.WebRTCModule.WebRTCModuleOptions;
 import android.media.AudioAttributes
-import org.webrtc.audio.JavaAudioDeviceModule;
+import livekit.org.webrtc.audio.JavaAudioDeviceModule;
 
 class MainApplication : Application(), ReactApplication {
 	override fun onCreate() {
@@ -116,9 +116,9 @@ class MainApplication : Application(), ReactApplication {
 ## Fatal Exception: java.lang.UnsatisfiedLinkError
 
 ```
-Fatal Exception: java.lang.UnsatisfiedLinkError: No implementation found for void org.webrtc.PeerConnectionFactory.nativeInitializeAndroidGlobals() (tried Java_org_webrtc_PeerConnectionFactory_nativeInitializeAndroidGlobals and Java_org_webrtc_PeerConnectionFactory_nativeInitializeAndroidGlobals__)
-	at org.webrtc.PeerConnectionFactory.nativeInitializeAndroidGlobals(PeerConnectionFactory.java)
-	at org.webrtc.PeerConnectionFactory.initialize(PeerConnectionFactory.java:306)
+Fatal Exception: java.lang.UnsatisfiedLinkError: No implementation found for void livekit.org.webrtc.PeerConnectionFactory.nativeInitializeAndroidGlobals() (tried Java_org_webrtc_PeerConnectionFactory_nativeInitializeAndroidGlobals and Java_org_webrtc_PeerConnectionFactory_nativeInitializeAndroidGlobals__)
+	at livekit.org.webrtc.PeerConnectionFactory.nativeInitializeAndroidGlobals(PeerConnectionFactory.java)
+	at livekit.org.webrtc.PeerConnectionFactory.initialize(PeerConnectionFactory.java:306)
 	at com.oney.WebRTCModule.WebRTCModule.initAsync(WebRTCModule.java:79)
 	at com.oney.WebRTCModule.WebRTCModule.lambda$new$0(WebRTCModule.java:70)
 	at com.oney.WebRTCModule.-$$Lambda$WebRTCModule$CnyHZvkjDxq52UReGHUZlY0JsVw.run(-.java:4)
@@ -153,11 +153,11 @@ No virtual method position(I)Ljava/nio/FloatBuffer; in class Ljava/nio/FloatBuff
 Stacktrace
 
 ```
-org.webrtc.GlUtil in createFloatBuffer at line 47
-org.webrtc.GlGenericDrawer in <clinit> at line 75
-org.webrtc.YuvConverter in <init> at line 111
-org.webrtc.YuvConverter in <init> at line 118
-org.webrtc.SurfaceTextureHelper in create at line 92
+livekit.org.webrtc.GlUtil in createFloatBuffer at line 47
+livekit.org.webrtc.GlGenericDrawer in <clinit> at line 75
+livekit.org.webrtc.YuvConverter in <init> at line 111
+livekit.org.webrtc.YuvConverter in <init> at line 118
+livekit.org.webrtc.SurfaceTextureHelper in create at line 92
 com.oney.WebRTCModule.GetUserMediaImpl in createVideoTrack at line 376
 com.oney.WebRTCModule.GetUserMediaImpl in getUserMedia at line 206
 com.oney.WebRTCModule.WebRTCModule in lambda$getUserMedia$10$WebRTCModule at line 742

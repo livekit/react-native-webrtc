@@ -23,8 +23,6 @@ import com.oney.WebRTCModule.videoEffects.ProcessorProvider;
 import com.oney.WebRTCModule.videoEffects.VideoEffectProcessor;
 import com.oney.WebRTCModule.videoEffects.VideoFrameProcessor;
 
-import org.webrtc.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +30,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import livekit.org.webrtc.*;
 
 /**
  * The implementation of {@code getUserMedia} extracted into a separate file in

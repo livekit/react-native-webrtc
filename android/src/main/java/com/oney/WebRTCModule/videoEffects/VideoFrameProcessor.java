@@ -1,7 +1,7 @@
 package com.oney.WebRTCModule.videoEffects;
 
-import org.webrtc.SurfaceTextureHelper;
-import org.webrtc.VideoFrame;
+import livekit.org.webrtc.SurfaceTextureHelper;
+import livekit.org.webrtc.VideoFrame;
 
 /**
  * Interface contains process method to process VideoFrame.
