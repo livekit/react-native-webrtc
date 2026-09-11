@@ -2,7 +2,7 @@
 
 @implementation SerializeUtils
 + (NSDictionary *)transceiverToJSONWithPeerConnectionId:(NSNumber *)id
-                                            transceiver:(RTCRtpTransceiver *_Nonnull)transceiver {
+                                            transceiver:(LKRTCRtpTransceiver *_Nonnull)transceiver {
     NSMutableDictionary *result = [NSMutableDictionary new];
 
     result[@"id"] = transceiver.sender.senderId;
@@ -10,7 +10,7 @@
     result[@"mid"] = transceiver.mid;
     result[@"direction"] = [SerializeUtils serializeDirection:transceiver.direction];
 
-    RTCRtpTransceiverDirection currentDirection;
+    LKRTCRtpTransceiverDirection currentDirection;
     if ([transceiver currentDirection:&currentDirection]) {
         result[@"currentDirection"] = [SerializeUtils serializeDirection:currentDirection];
     }
@@ -22,13 +22,13 @@
     return result;
 }
 
-+ (NSMutableArray *)constructTransceiversInfoArrayWithPeerConnection:(RTCPeerConnection *)peerConnection {
++ (NSMutableArray *)constructTransceiversInfoArrayWithPeerConnection:(LKRTCPeerConnection *)peerConnection {
     NSMutableArray *transceiverUpdates = [NSMutableArray new];
 
-    for (RTCRtpTransceiver *transceiver in peerConnection.transceivers) {
+    for (LKRTCRtpTransceiver *transceiver in peerConnection.transceivers) {
         NSMutableDictionary *transceiverUpdate = [NSMutableDictionary new];
 
-        RTCRtpTransceiverDirection currentDirection;
+        LKRTCRtpTransceiverDirection currentDirection;
         BOOL hasCurrentDirection = [transceiver currentDirection:&currentDirection];
         if (hasCurrentDirection) {
             NSString *currentDirectionSerialized = [SerializeUtils serializeDirection:currentDirection];
@@ -47,7 +47,7 @@
     return transceiverUpdates;
 }
 
-+ (NSDictionary *)senderToJSONWithPeerConnectionId:(NSNumber *)id sender:(RTCRtpSender *)sender {
++ (NSDictionary *)senderToJSONWithPeerConnectionId:(NSNumber *)id sender:(LKRTCRtpSender *)sender {
     NSMutableDictionary *senderDictionary = [NSMutableDictionary new];
     senderDictionary[@"id"] = sender.senderId;
     senderDictionary[@"peerConnectionId"] = id;
@@ -61,7 +61,7 @@
     return senderDictionary;
 }
 
-+ (NSDictionary *)receiverToJSONWithPeerConnectionId:(NSNumber *)id receiver:(RTCRtpReceiver *)receiver {
++ (NSDictionary *)receiverToJSONWithPeerConnectionId:(NSNumber *)id receiver:(LKRTCRtpReceiver *)receiver {
     NSMutableDictionary *receiverDictionary = [NSMutableDictionary new];
     receiverDictionary[@"id"] = receiver.receiverId;
     receiverDictionary[@"peerConnectionId"] = id;
@@ -75,7 +75,7 @@
     return receiverDictionary;
 }
 
-+ (NSDictionary *)parametersToJSON:(RTCRtpParameters *)params {
++ (NSDictionary *)parametersToJSON:(LKRTCRtpParameters *)params {
     NSMutableDictionary *paramsDictionary = [NSMutableDictionary new];
 
     NSMutableDictionary *rtcpDictionary = [NSMutableDictionary new];
@@ -84,7 +84,7 @@
 
     NSMutableArray *headerExtensions = [NSMutableArray new];
 
-    for (RTCRtpHeaderExtension *extension in params.headerExtensions) {
+    for (LKRTCRtpHeaderExtension *extension in params.headerExtensions) {
         NSMutableDictionary *extensionDictionary = [NSMutableDictionary new];
         extensionDictionary[@"id"] = [NSNumber numberWithInt:extension.id];
         extensionDictionary[@"uri"] = extension.uri;
@@ -95,7 +95,7 @@
 
     NSMutableArray *encodings = [NSMutableArray new];
 
-    for (RTCRtpEncodingParameters *encoding in params.encodings) {
+    for (LKRTCRtpEncodingParameters *encoding in params.encodings) {
         NSMutableDictionary *encodingDictionary = [NSMutableDictionary new];
 
         encodingDictionary[@"active"] = [NSNumber numberWithBool:encoding.isActive];
@@ -121,7 +121,7 @@
 
     NSMutableArray *codecs = [NSMutableArray new];
 
-    for (RTCRtpCodecParameters *codec in params.codecs) {
+    for (LKRTCRtpCodecParameters *codec in params.codecs) {
         NSMutableDictionary *codecDictionary = [NSMutableDictionary new];
 
         codecDictionary[@"payloadType"] = [NSNumber numberWithInt:codec.payloadType];
@@ -152,13 +152,13 @@
     return paramsDictionary;
 }
 
-+ (NSDictionary *)trackToJSONWithPeerConnectionId:(NSNumber *)id track:(RTCMediaStreamTrack *)track {
++ (NSDictionary *)trackToJSONWithPeerConnectionId:(NSNumber *)id track:(LKRTCMediaStreamTrack *)track {
     NSString *readyState;
     switch (track.readyState) {
-        case RTCMediaStreamTrackStateLive:
+        case LKRTCMediaStreamTrackStateLive:
             readyState = @"live";
             break;
-        case RTCMediaStreamTrackStateEnded:
+        case LKRTCMediaStreamTrackStateEnded:
             readyState = @"ended";
             break;
     }
@@ -173,17 +173,17 @@
     };
 }
 
-+ (NSDictionary *)capabilitiesToJSON:(RTCRtpCapabilities *)capabilities {
++ (NSDictionary *)capabilitiesToJSON:(LKRTCRtpCapabilities *)capabilities {
     NSMutableArray *codecs = [NSMutableArray new];
 
-    for (RTCRtpCodecCapability *codec in capabilities.codecs) {
+    for (LKRTCRtpCodecCapability *codec in capabilities.codecs) {
         [codecs addObject:[self codecCapabilityToJSON:codec]];
     }
 
     return @{@"codecs" : codecs};
 }
 
-+ (NSDictionary *)codecCapabilityToJSON:(RTCRtpCodecCapability *)codec {
++ (NSDictionary *)codecCapabilityToJSON:(LKRTCRtpCodecCapability *)codec {
     NSMutableDictionary *codecDictionary = [NSMutableDictionary new];
 
     codecDictionary[@"payloadType"] = codec.preferredPayloadType;
@@ -214,39 +214,39 @@
     return [parts componentsJoinedByString:@";"];
 }
 
-+ (NSString *)serializeDirection:(RTCRtpTransceiverDirection)direction {
-    if (direction == RTCRtpTransceiverDirectionInactive) {
++ (NSString *)serializeDirection:(LKRTCRtpTransceiverDirection)direction {
+    if (direction == LKRTCRtpTransceiverDirectionInactive) {
         return @"inactive";
-    } else if (direction == RTCRtpTransceiverDirectionRecvOnly) {
+    } else if (direction == LKRTCRtpTransceiverDirectionRecvOnly) {
         return @"recvonly";
-    } else if (direction == RTCRtpTransceiverDirectionSendOnly) {
+    } else if (direction == LKRTCRtpTransceiverDirectionSendOnly) {
         return @"sendonly";
-    } else if (direction == RTCRtpTransceiverDirectionSendRecv) {
+    } else if (direction == LKRTCRtpTransceiverDirectionSendRecv) {
         return @"sendrecv";
-    } else if (direction == RTCRtpTransceiverDirectionStopped) {
+    } else if (direction == LKRTCRtpTransceiverDirectionStopped) {
         return @"stopped";
     }
     return nil;
 }
 
-+ (RTCRtpTransceiverDirection)parseDirection:(NSString *)direction {
++ (LKRTCRtpTransceiverDirection)parseDirection:(NSString *)direction {
     if ([direction isEqual:@"inactive"]) {
-        return RTCRtpTransceiverDirectionInactive;
+        return LKRTCRtpTransceiverDirectionInactive;
     } else if ([direction isEqual:@"recvonly"]) {
-        return RTCRtpTransceiverDirectionRecvOnly;
+        return LKRTCRtpTransceiverDirectionRecvOnly;
     } else if ([direction isEqual:@"sendonly"]) {
-        return RTCRtpTransceiverDirectionSendOnly;
+        return LKRTCRtpTransceiverDirectionSendOnly;
     } else if ([direction isEqual:@"sendrecv"]) {
-        return RTCRtpTransceiverDirectionSendRecv;
+        return LKRTCRtpTransceiverDirectionSendRecv;
     } else if ([direction isEqual:@"stopped"]) {
-        return RTCRtpTransceiverDirectionStopped;
+        return LKRTCRtpTransceiverDirectionStopped;
     }
 
-    return RTCRtpTransceiverDirectionInactive;
+    return LKRTCRtpTransceiverDirectionInactive;
 }
 
-+ (RTCRtpEncodingParameters *)parseEncoding:(NSDictionary *)params {
-    RTCRtpEncodingParameters *encoding = [RTCRtpEncodingParameters new];
++ (LKRTCRtpEncodingParameters *)parseEncoding:(NSDictionary *)params {
+    LKRTCRtpEncodingParameters *encoding = [LKRTCRtpEncodingParameters new];
 
     if (params[@"rid"] != nil) {
         [encoding setRid:params[@"rid"]];
@@ -270,8 +270,8 @@
     return encoding;
 }
 
-+ (RTCRtpTransceiverInit *)parseTransceiverOptions:(NSDictionary *)params {
-    RTCRtpTransceiverInit *transceiverInit = [RTCRtpTransceiverInit new];
++ (LKRTCRtpTransceiverInit *)parseTransceiverOptions:(NSDictionary *)params {
+    LKRTCRtpTransceiverInit *transceiverInit = [LKRTCRtpTransceiverInit new];
 
     NSString *direction = [params objectForKey:@"direction"];
     if (direction) {
@@ -285,7 +285,7 @@
 
     NSArray *encodingsArray = [params objectForKey:@"sendEncodings"];
     if (encodingsArray) {
-        NSMutableArray<RTCRtpEncodingParameters *> *sendEncodings = [NSMutableArray new];
+        NSMutableArray<LKRTCRtpEncodingParameters *> *sendEncodings = [NSMutableArray new];
         for (NSDictionary *encoding in encodingsArray) {
             [sendEncodings addObject:[self parseEncoding:encoding]];
         }
@@ -296,7 +296,7 @@
 }
 
 + (NSDictionary *)streamToJSONWithPeerConnectionId:(NSNumber *)id
-                                            stream:(RTCMediaStream *)stream
+                                            stream:(LKRTCMediaStream *)stream
                                     streamReactTag:(NSString *)streamReactTag {
     NSMutableDictionary *streamDictionary = [NSMutableDictionary new];
 
@@ -305,11 +305,11 @@
 
     NSMutableArray *tracks = [NSMutableArray new];
 
-    for (RTCAudioTrack *audioTrack in stream.audioTracks) {
+    for (LKRTCAudioTrack *audioTrack in stream.audioTracks) {
         [tracks addObject:[SerializeUtils trackToJSONWithPeerConnectionId:id track:audioTrack]];
     }
 
-    for (RTCVideoTrack *videoTrack in stream.videoTracks) {
+    for (LKRTCVideoTrack *videoTrack in stream.videoTracks) {
         [tracks addObject:[SerializeUtils trackToJSONWithPeerConnectionId:id track:videoTrack]];
     }
 

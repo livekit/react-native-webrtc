@@ -6,6 +6,23 @@
 #import "AudioDeviceModuleObserver.h"
 #import "WebRTCModule.h"
 
+// Matches kAudioEngineErrorInsufficientDevicePermission in the audio engine.
+// Enabling input fails with this code when microphone permission is missing,
+// the engine only passively checks and never prompts.
+static const NSInteger kInsufficientDevicePermission = -9000;
+
+// Rejects a recording start with a dedicated code when the failure is a
+// missing microphone permission, so apps can tell it apart from other errors.
+static void rejectRecordingError(RCTPromiseRejectBlock reject, NSString *operation, NSInteger result) {
+    if (result == kInsufficientDevicePermission) {
+        reject(@"microphone_permission_denied",
+               [NSString stringWithFormat:@"Failed to %@: microphone permission not granted", operation],
+               nil);
+    } else {
+        reject(@"recording_error", [NSString stringWithFormat:@"Failed to %@: %ld", operation, (long)result], nil);
+    }
+}
+
 @implementation WebRTCModule (RTCAudioDeviceModule)
 
 #pragma mark - Recording & Playback Control
@@ -39,7 +56,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleStartRecording
     if (result == 0) {
         resolve(nil);
     } else {
-        reject(@"recording_error", [NSString stringWithFormat:@"Failed to start recording: %ld", (long)result], nil);
+        rejectRecordingError(reject, @"start recording", result);
     }
 }
 
@@ -61,8 +78,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleStartLocalRecording
     if (result == 0) {
         resolve(nil);
     } else {
-        reject(
-            @"recording_error", [NSString stringWithFormat:@"Failed to start local recording: %ld", (long)result], nil);
+        rejectRecordingError(reject, @"start local recording", result);
     }
 }
 
@@ -154,7 +170,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetMuteMode
                   : (NSInteger)mode resolver
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-    NSInteger result = [self.audioDeviceModule setMuteMode:(RTCAudioEngineMuteMode)mode];
+    NSInteger result = [self.audioDeviceModule setMuteMode:(LKRTCAudioEngineMuteMode)mode];
     if (result == 0) {
         resolve(nil);
     } else {
@@ -203,7 +219,7 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetRecordingAlwaysPreparedMode
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(audioDeviceModuleGetEngineAvailability) {
-    RTCAudioEngineAvailability availability = self.audioDeviceModule.engineAvailability;
+    LKRTCAudioEngineAvailability availability = self.audioDeviceModule.engineAvailability;
     return @{
         @"isInputAvailable" : @(availability.isInputAvailable),
         @"isOutputAvailable" : @(availability.isOutputAvailable)
@@ -214,12 +230,19 @@ RCT_EXPORT_METHOD(audioDeviceModuleSetEngineAvailability
                   : (NSDictionary *)availabilityDict resolver
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject) {
-    RTCAudioEngineAvailability availability;
+    LKRTCAudioEngineAvailability availability;
     availability.isInputAvailable = [availabilityDict[@"isInputAvailable"] boolValue];
     availability.isOutputAvailable = [availabilityDict[@"isOutputAvailable"] boolValue];
     NSInteger result = [self.audioDeviceModule setEngineAvailability:availability];
     if (result == 0) {
         resolve(nil);
+    } else if (result == kInsufficientDevicePermission) {
+        // Restoring input availability resumes a recording requested while
+        // input was unavailable, and that resume runs the same passive
+        // permission check as a recording start.
+        reject(@"microphone_permission_denied",
+               @"Failed to set engine availability: microphone permission not granted",
+               nil);
     } else {
         reject(@"engine_availability_error",
                [NSString stringWithFormat:@"Failed to set engine availability: %ld", (long)result],

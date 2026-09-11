@@ -78,7 +78,7 @@
     }
 }
 
-- (CVPixelBufferRef)convertI420ToPixelBuffer:(RTCI420Buffer *)buffer {
+- (CVPixelBufferRef)convertI420ToPixelBuffer:(LKRTCI420Buffer *)buffer {
     if (_conversionInfo == nil) {
         NSLog(@"%@: not prepared", NSStringFromSelector(_cmd));
         return NULL;
@@ -106,7 +106,7 @@
     return pixelBuffer;
 }
 
-- (vImage_Error)convertFrameVImageYUV:(RTCI420Buffer *)buffer toBuffer:(CVPixelBufferRef)pixelBufferRef {
+- (vImage_Error)convertFrameVImageYUV:(LKRTCI420Buffer *)buffer toBuffer:(CVPixelBufferRef)pixelBufferRef {
     if (pixelBufferRef == NULL) {
         return kvImageInvalidParameter;
     }

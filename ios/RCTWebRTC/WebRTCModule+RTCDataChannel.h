@@ -1,7 +1,7 @@
 #import "DataChannelWrapper.h"
 #import "WebRTCModule.h"
 
-@interface RTCDataChannel (React)
+@interface LKRTCDataChannel (React)
 
 @property(nonatomic, strong) NSNumber *peerConnectionId;
 
@@ -9,6 +9,6 @@
 
 @interface WebRTCModule (RTCDataChannel)<DataChannelWrapperDelegate>
 
-- (NSString *)stringForDataChannelState:(RTCDataChannelState)state;
+- (NSString *)stringForDataChannelState:(LKRTCDataChannelState)state;
 
 @end

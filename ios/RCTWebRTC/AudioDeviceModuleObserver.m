@@ -61,11 +61,19 @@ static os_log_t ADMObserverLog(void) {
 @property(nonatomic, assign) NSInteger awaitingRequestId;
 
 // Whether the native auto-config path currently holds an
-// RTCAudioSession activation it must later release. RTCAudioSession refcounts
+// LKRTCAudioSession activation it must later release. LKRTCAudioSession refcounts
 // setActive, so a mismatched activate/release leaves the OS session stuck active.
 // Touched only on the serial worker thread; atomic as insurance against future
 // cross-thread reads.
 @property(atomic, assign) BOOL autoSessionHoldsActivation;
+
+// Last Apple Voice Processing I/O state reported by willEnableEngine. Only that
+// callback carries it: by the time didDisable fires the input path is already
+// torn down, so neither the callback nor a readback from the module can say what
+// the engine was running with. Cached so didDisable reconfigures with the same
+// variant willEnable applied. Touched only on the serial worker thread; atomic as
+// insurance against future cross-thread reads.
+@property(atomic, assign) BOOL lastVoiceProcessingEnabled;
 
 @end
 
@@ -158,11 +166,11 @@ static os_log_t ADMObserverLog(void) {
     return resultBlock();
 }
 
-#pragma mark - RTCAudioDeviceModuleDelegate
+#pragma mark - LKRTCAudioDeviceModuleDelegate
 
-- (void)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
-    didReceiveSpeechActivityEvent:(RTCSpeechActivityEvent)speechActivityEvent {
-    NSString *eventType = speechActivityEvent == RTCSpeechActivityEventStarted ? @"started" : @"ended";
+- (void)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+    didReceiveSpeechActivityEvent:(LKRTCSpeechActivityEvent)speechActivityEvent {
+    NSString *eventType = speechActivityEvent == LKRTCSpeechActivityEventStarted ? @"started" : @"ended";
 
     [self.module sendEventWithName:kEventAudioDeviceModuleSpeechActivity
                               body:@{
@@ -172,7 +180,7 @@ static os_log_t ADMObserverLog(void) {
     RCTLog(@"[AudioDeviceModuleObserver] Speech activity event: %@", eventType);
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule didCreateEngine:(AVAudioEngine *)engine {
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule didCreateEngine:(AVAudioEngine *)engine {
     BOOL isActive = self.isEngineCreatedActive;
 
     if (isActive) {
@@ -193,30 +201,38 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
               willEnableEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
-            isRecordingEnabled:(BOOL)isRecordingEnabled {
+            isRecordingEnabled:(BOOL)isRecordingEnabled
+      isVoiceProcessingEnabled:(BOOL)isVoiceProcessingEnabled {
+    self.lastVoiceProcessingEnabled = isVoiceProcessingEnabled;
+
     // With no custom JS handler registered, configure the audio session natively
     // here instead of doing a JS round trip. This is the default path and avoids
     // parking the audio worker thread on the JS thread entirely. A custom handler
     // (isWillEnableEngineActive == YES) falls through to the bounded round trip.
     if (!self.isWillEnableEngineActive && self.automaticAudioSessionConfig != nil) {
-        return [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled recording:isRecordingEnabled];
+        return [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled
+                                                      recording:isRecordingEnabled
+                                                voiceProcessing:isVoiceProcessingEnabled];
     }
 
     BOOL isActive = self.isWillEnableEngineActive;
 
     if (isActive) {
-        RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - playout: %d, recording: %d - waiting for JS response",
+        RCTLog(@"[AudioDeviceModuleObserver] Engine will enable - playout: %d, recording: %d, voiceProcessing: %d - "
+               @"waiting for JS response",
                isPlayoutEnabled,
-               isRecordingEnabled);
+               isRecordingEnabled,
+               isVoiceProcessingEnabled);
     }
 
     NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineWillEnable
                                                  body:@{
                                                      @"isPlayoutEnabled" : @(isPlayoutEnabled),
                                                      @"isRecordingEnabled" : @(isRecordingEnabled),
+                                                     @"isVoiceProcessingEnabled" : @(isVoiceProcessingEnabled),
                                                  }
                                             semaphore:self.willEnableEngineSemaphore
                                           resultBlock:^NSInteger {
@@ -234,7 +250,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
                willStartEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
@@ -263,7 +279,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
                  didStopEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
@@ -292,7 +308,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
               didDisableEngine:(AVAudioEngine *)engine
               isPlayoutEnabled:(BOOL)isPlayoutEnabled
             isRecordingEnabled:(BOOL)isRecordingEnabled {
@@ -304,7 +320,8 @@ static os_log_t ADMObserverLog(void) {
     if (!self.isDidDisableEngineActive &&
         (self.automaticAudioSessionConfig != nil || self.autoSessionHoldsActivation)) {
         NSInteger result = [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled
-                                                                  recording:isRecordingEnabled];
+                                                                  recording:isRecordingEnabled
+                                                            voiceProcessing:self.lastVoiceProcessingEnabled];
         if (result != 0) {
             // didDisable fires after the engine's disable work has already run, so
             // libwebrtc cannot roll this operation back. Propagating an error here
@@ -331,6 +348,7 @@ static os_log_t ADMObserverLog(void) {
                                                  body:@{
                                                      @"isPlayoutEnabled" : @(isPlayoutEnabled),
                                                      @"isRecordingEnabled" : @(isRecordingEnabled),
+                                                     @"isVoiceProcessingEnabled" : @(self.lastVoiceProcessingEnabled),
                                                  }
                                             semaphore:self.didDisableEngineSemaphore
                                           resultBlock:^NSInteger {
@@ -344,7 +362,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule willReleaseEngine:(AVAudioEngine *)engine {
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule willReleaseEngine:(AVAudioEngine *)engine {
     BOOL isActive = self.isWillReleaseEngineActive;
 
     if (isActive) {
@@ -365,7 +383,7 @@ static os_log_t ADMObserverLog(void) {
     return result;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
                         engine:(AVAudioEngine *)engine
       configureInputFromSource:(nullable AVAudioNode *)source
                  toDestination:(AVAudioNode *)destination
@@ -375,7 +393,7 @@ static os_log_t ADMObserverLog(void) {
     return 0;
 }
 
-- (NSInteger)audioDeviceModule:(RTCAudioDeviceModule *)audioDeviceModule
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
                         engine:(AVAudioEngine *)engine
      configureOutputFromSource:(AVAudioNode *)source
                  toDestination:(nullable AVAudioNode *)destination
@@ -385,7 +403,7 @@ static os_log_t ADMObserverLog(void) {
     return 0;
 }
 
-- (void)audioDeviceModuleDidUpdateDevices:(RTCAudioDeviceModule *)audioDeviceModule {
+- (void)audioDeviceModuleDidUpdateDevices:(LKRTCAudioDeviceModule *)audioDeviceModule {
     [self.module sendEventWithName:kEventAudioDeviceModuleDevicesUpdated body:@{}];
 
     RCTLog(@"[AudioDeviceModuleObserver] Devices updated");
@@ -470,14 +488,16 @@ static os_log_t ADMObserverLog(void) {
 // - optionally deactivates on stop,
 // - returns a non-zero error code on failure so libwebrtc rolls the operation back.
 //
-// Activation is decided against RTCAudioSession's own state rather than a mirror
+// Activation is decided against LKRTCAudioSession's own state rather than a mirror
 // of past engine states, so a policy re-push mid-call (setupIOSAudioManagement
 // called again), a path switch, or an interruption cannot desync it:
 // - session already active (previous hold, custom JS path, or the app) ->
 //   reconfigure only, never a second refcounted activation.
 // - session inactive (fresh start, or the custom path deactivated it before a
 //   switch back to the native path) -> activate and take the hold.
-- (NSInteger)applyAutomaticAudioSessionConfigForPlayout:(BOOL)isPlayoutEnabled recording:(BOOL)isRecordingEnabled {
+- (NSInteger)applyAutomaticAudioSessionConfigForPlayout:(BOOL)isPlayoutEnabled
+                                              recording:(BOOL)isRecordingEnabled
+                                        voiceProcessing:(BOOL)isVoiceProcessingEnabled {
     NSDictionary *policy = self.automaticAudioSessionConfig;
     BOOL nowActive = isPlayoutEnabled || isRecordingEnabled;
 
@@ -489,7 +509,7 @@ static os_log_t ADMObserverLog(void) {
         // the native path is disarmed.
         if (!nowActive && self.autoSessionHoldsActivation) {
             os_log(ADMObserverLog(), "Native auto-config: releasing orphaned activation hold");
-            RTCAudioSession *session = [RTCAudioSession sharedInstance];
+            LKRTCAudioSession *session = [LKRTCAudioSession sharedInstance];
             [session lockForConfiguration];
             NSError *releaseError = nil;
             [session setActive:NO error:&releaseError];
@@ -504,7 +524,7 @@ static os_log_t ADMObserverLog(void) {
         return 0;
     }
 
-    RTCAudioSession *session = [RTCAudioSession sharedInstance];
+    LKRTCAudioSession *session = [LKRTCAudioSession sharedInstance];
     [session lockForConfiguration];
 
     NSError *error = nil;
@@ -513,7 +533,7 @@ static os_log_t ADMObserverLog(void) {
             os_log(ADMObserverLog(), "Native auto-config: deactivating audio session");
             NSError *deactivateError = nil;
             [session setActive:NO error:&deactivateError];
-            // RTCAudioSession decrements its activation count even when the OS
+            // LKRTCAudioSession decrements its activation count even when the OS
             // session is already inactive (e.g. an interruption cleared it) or the
             // call fails, so the hold is released in every outcome.
             self.autoSessionHoldsActivation = NO;
@@ -531,8 +551,22 @@ static os_log_t ADMObserverLog(void) {
     } else {
         // Recording uses the duplex (playAndRecord) config, while playout-only uses
         // the playback config. Both are supplied by the SDK in automaticAudioSessionConfig.
-        NSDictionary *cfg = isRecordingEnabled ? policy[@"recording"] : policy[@"playout"];
-        RTCAudioSessionConfiguration *rtcConfig = [RTCAudioSessionConfiguration webRTCConfiguration];
+        //
+        // The voiceChat/videoChat modes engage iOS's call-tuned speaker gain while
+        // capture is active. Apple Voice Processing I/O compensates with its own
+        // loudness stage; with VPIO off nothing does and remote audio plays back
+        // noticeably quieter, so the SDK supplies a separate recording variant for
+        // that case. It is optional, so a policy from an SDK predating it keeps the
+        // previous behavior.
+        NSDictionary *cfg;
+        if (!isRecordingEnabled) {
+            cfg = policy[@"playout"];
+        } else if (!isVoiceProcessingEnabled && policy[@"recordingWithoutVoiceProcessing"] != nil) {
+            cfg = policy[@"recordingWithoutVoiceProcessing"];
+        } else {
+            cfg = policy[@"recording"];
+        }
+        LKRTCAudioSessionConfiguration *rtcConfig = [LKRTCAudioSessionConfiguration webRTCConfiguration];
         if (cfg[@"audioCategory"] != nil) {
             rtcConfig.category = [self avAudioSessionCategoryFromString:cfg[@"audioCategory"]];
         }
@@ -559,7 +593,7 @@ static os_log_t ADMObserverLog(void) {
                     //
                     // Ordered activate-first deliberately. Releasing before
                     // reactivating would zero the count whenever the reactivation
-                    // fails, and RTCAudioSession's interruption-end recovery
+                    // fails, and LKRTCAudioSession's interruption-end recovery
                     // deactivates outright at count zero. A failure must leave the
                     // prior hold untouched for that recovery to restore it.
                     os_log(ADMObserverLog(), "Native auto-config: dropping extra count after reactivating");

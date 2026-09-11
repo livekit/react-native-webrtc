@@ -15,6 +15,20 @@ Set it to '12.0' or above or you'll get an error when running `pod install`.
 platform :ios, '12.0'
 ```
 
+## Pod source
+
+The native module depends on the `LiveKitWebRTC` pod, which is published on the
+CocoaPods trunk, so no extra `source` lines are needed in your `Podfile`.
+
+If a `LiveKitWebRTC` version has not reached the trunk CDN yet, the
+[livekit/podspecs](https://github.com/livekit/podspecs) repository serves the
+same podspecs and can be added as an additional source:
+
+```ruby
+source 'https://cdn.cocoapods.org/'
+source 'https://github.com/livekit/podspecs.git'
+```
+
 ## Declaring Permissions
 
 Navigate to `<ProjectFolder>/ios/<ProjectName>/` and edit `Info.plist`, add the following lines.
@@ -29,17 +43,17 @@ Navigate to `<ProjectFolder>/ios/<ProjectName>/` and edit `Info.plist`, add the 
 ## CallKit
 
 If your app uses a CallKit integration to handle incoming calls, then your
-CXProviderDelegate should call through to `RTCAudioSession.sharedInstance.audioSessionDidActivate/Deactivate` accordingly.
+CXProviderDelegate should call through to `LKRTCAudioSession.sharedInstance.audioSessionDidActivate/Deactivate` accordingly.
 
 ```
-#import <WebRTC/RTCAudioSession.h>
+#import <LiveKitWebRTC/RTCAudioSession.h>
 
 - (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession {
-    [[RTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];
+    [[LKRTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];
 }
 
 - (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession {
-    [[RTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];
+    [[LKRTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];
 }
 ```
 

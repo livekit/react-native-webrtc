@@ -16,6 +16,21 @@ export interface EngineStateEventData {
 }
 
 /**
+ * Engine state for the willEnable/didDisable pair, which additionally reports
+ * whether Apple Voice Processing I/O is running. Use it to pick a session mode
+ * that matches the processing implementation - the voiceChat/videoChat modes
+ * engage iOS's call-tuned speaker gain, which only VPIO compensates for.
+ *
+ * On willEnable this is the resolved state the engine is transitioning to, and
+ * is not yet readable from the module. On didDisable it is the state the last
+ * willEnable reported, because the input path is already torn down by then and
+ * the live value would always read false.
+ */
+export interface EngineProcessingStateEventData extends EngineStateEventData {
+  isVoiceProcessingEnabled: boolean;
+}
+
+/**
  * Raw native event payload. Every engine event carries a `requestId` that must
  * be echoed back to the matching resolve call so the native side can drop a
  * response from a round that already timed out. This id is internal and is not
@@ -27,6 +42,8 @@ interface EngineEventPayload {
 
 interface EngineStateEventPayload extends EngineEventPayload, EngineStateEventData {}
 
+interface EngineProcessingStateEventPayload extends EngineEventPayload, EngineProcessingStateEventData {}
+
 export type AudioDeviceModuleEventType =
   | 'speechActivity'
   | 'devicesUpdated';
@@ -34,6 +51,7 @@ export type AudioDeviceModuleEventType =
 export type AudioDeviceModuleEventData =
   | SpeechActivityEventData
   | EngineStateEventData
+  | EngineProcessingStateEventData
   | Record<string, never>; // Empty object for events with no data
 
 export type AudioDeviceModuleEventListener = (data: AudioDeviceModuleEventData) => void;
@@ -42,10 +60,14 @@ export type AudioDeviceModuleEventListener = (data: AudioDeviceModuleEventData) 
  * Handler function that must return a number (0 for success, non-zero for error)
  */
 export type AudioEngineEventNoParamsHandler = () => Promise<void>;
-export type AudioEngineEventHandler = (params: {
-    isPlayoutEnabled: boolean;
-    isRecordingEnabled: boolean;
-}) => Promise<void>;
+export type AudioEngineEventHandler = (params: EngineStateEventData) => Promise<void>;
+
+/**
+ * Handler for the willEnable/didDisable hooks, which also report the Apple
+ * Voice Processing I/O state. Assignable from an {@link AudioEngineEventHandler},
+ * so existing handlers keep working.
+ */
+export type AudioEngineProcessingEventHandler = (params: EngineProcessingStateEventData) => Promise<void>;
 
 /**
  * Event emitter for RTCAudioDeviceModule delegate callbacks.
@@ -53,10 +75,10 @@ export type AudioEngineEventHandler = (params: {
  */
 class AudioDeviceModuleEventEmitter {
     private engineCreatedHandler: AudioEngineEventNoParamsHandler | null = null;
-    private willEnableEngineHandler: AudioEngineEventHandler | null = null;
+    private willEnableEngineHandler: AudioEngineProcessingEventHandler | null = null;
     private willStartEngineHandler: AudioEngineEventHandler | null = null;
     private didStopEngineHandler: AudioEngineEventHandler | null = null;
-    private didDisableEngineHandler: AudioEngineEventHandler | null = null;
+    private didDisableEngineHandler: AudioEngineProcessingEventHandler | null = null;
     private willReleaseEngineHandler: AudioEngineEventNoParamsHandler | null = null;
 
     private listenersSetUp = false;
@@ -96,12 +118,17 @@ class AudioDeviceModuleEventEmitter {
                 this,
                 'audioDeviceModuleEngineWillEnable',
                 async (event: unknown) => {
-                    const { requestId, isPlayoutEnabled, isRecordingEnabled } = event as EngineStateEventPayload;
+                    const { requestId, isPlayoutEnabled, isRecordingEnabled, isVoiceProcessingEnabled } =
+                        event as EngineProcessingStateEventPayload;
                     let result = 0;
 
                     if (this.willEnableEngineHandler) {
                         try {
-                            await this.willEnableEngineHandler({ isPlayoutEnabled, isRecordingEnabled });
+                            await this.willEnableEngineHandler({
+                                isPlayoutEnabled,
+                                isRecordingEnabled,
+                                isVoiceProcessingEnabled,
+                            });
                         } catch (error) {
                             // If error is a number, use it as the error code, otherwise use -1
                             result = typeof error === 'number' ? error : -1;
@@ -156,12 +183,17 @@ class AudioDeviceModuleEventEmitter {
                 this,
                 'audioDeviceModuleEngineDidDisable',
                 async (event: unknown) => {
-                    const { requestId, isPlayoutEnabled, isRecordingEnabled } = event as EngineStateEventPayload;
+                    const { requestId, isPlayoutEnabled, isRecordingEnabled, isVoiceProcessingEnabled } =
+                        event as EngineProcessingStateEventPayload;
                     let result = 0;
 
                     if (this.didDisableEngineHandler) {
                         try {
-                            await this.didDisableEngineHandler({ isPlayoutEnabled, isRecordingEnabled });
+                            await this.didDisableEngineHandler({
+                                isPlayoutEnabled,
+                                isRecordingEnabled,
+                                isVoiceProcessingEnabled,
+                            });
                         } catch (error) {
                             // If error is a number, use it as the error code, otherwise use -1
                             result = typeof error === 'number' ? error : -1;
@@ -294,7 +326,7 @@ class AudioDeviceModuleEventEmitter {
      * Set handler for will enable engine delegate - MUST return 0 for success or error code
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
-    setWillEnableEngineHandler(handler: AudioEngineEventHandler | null) {
+    setWillEnableEngineHandler(handler: AudioEngineProcessingEventHandler | null) {
         this.applyHandlerActive(
             'audioDeviceModuleSetWillEnableEngineActive',
             this.willEnableEngineHandler !== null,
@@ -339,7 +371,7 @@ class AudioDeviceModuleEventEmitter {
      * Set handler for did disable engine delegate - MUST return 0 for success or error code
      * This handler blocks the native thread until it returns, throw to cancel audio engine's operation
      */
-    setDidDisableEngineHandler(handler: AudioEngineEventHandler | null) {
+    setDidDisableEngineHandler(handler: AudioEngineProcessingEventHandler | null) {
         this.applyHandlerActive(
             'audioDeviceModuleSetDidDisableEngineActive',
             this.didDisableEngineHandler !== null,

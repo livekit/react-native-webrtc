@@ -1,9 +1,9 @@
-#import <WebRTC/WebRTC.h>
+#import <LiveKitWebRTC/LiveKitWebRTC.h>
 #import "WebRTCModule.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface AudioDeviceModuleObserver : NSObject<RTCAudioDeviceModuleDelegate>
+@interface AudioDeviceModuleObserver : NSObject<LKRTCAudioDeviceModuleDelegate>
 
 - (instancetype)initWithWebRTCModule:(WebRTCModule *)module;
 
@@ -24,9 +24,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 // Native default AVAudioSession policy. When non-nil and no JS willEnable/
 // didDisable handler is registered, applied on the worker thread. nil clears it.
-// Shape: @{ @"recording": <cfg>, @"playout": <cfg>, @"deactivateOnStop": @(BOOL) }
+// Shape: @{ @"recording": <cfg>, @"playout": <cfg>,
+//           @"recordingWithoutVoiceProcessing": <cfg>, @"deactivateOnStop": @(BOOL) }
 // where <cfg> is @{ @"audioCategory": str, @"audioMode": str,
 //                   @"audioCategoryOptions": @[str...] }.
+// recordingWithoutVoiceProcessing is optional and replaces recording while Apple
+// Voice Processing I/O is off; omitting it keeps recording for both cases.
 //
 // Warnings:
 // - Clearing a deactivateOnStop:NO policy while the engine is already stopped

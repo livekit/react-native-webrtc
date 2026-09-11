@@ -6,9 +6,9 @@
 
 @property(nonatomic, strong) VideoEffectProcessor *videoEffectProcessor;
 
-- (RTCVideoTrack *)createVideoTrackWithCaptureController:
-    (CaptureController * (^)(RTCVideoSource *))captureControllerCreator;
-- (NSArray *)createMediaStream:(NSArray<RTCMediaStreamTrack *> *)tracks;
+- (LKRTCVideoTrack *)createVideoTrackWithCaptureController:
+    (CaptureController * (^)(LKRTCVideoSource *))captureControllerCreator;
+- (NSArray *)createMediaStream:(NSArray<LKRTCMediaStreamTrack *> *)tracks;
 
-- (RTCMediaStreamTrack *)trackForId:(nonnull NSString *)trackId pcId:(nonnull NSNumber *)pcId;
+- (LKRTCMediaStreamTrack *)trackForId:(nonnull NSString *)trackId pcId:(nonnull NSNumber *)pcId;
 @end

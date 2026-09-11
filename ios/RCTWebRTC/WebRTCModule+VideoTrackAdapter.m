@@ -8,8 +8,8 @@
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTLog.h>
 
-#import <WebRTC/RTCVideoRenderer.h>
-#import <WebRTC/RTCVideoTrack.h>
+#import <LiveKitWebRTC/RTCVideoRenderer.h>
+#import <LiveKitWebRTC/RTCVideoTrack.h>
 
 #import "WebRTCModule+RTCPeerConnection.h"
 #import "WebRTCModule+VideoTrackAdapter.h"
@@ -26,7 +26,7 @@ static const NSTimeInterval MUTE_DELAY = 1.5;
  * stalled for the default interval it will emit a mute event. If frames keep
  * being received, the track unmute event will be emitted.
  */
-@interface TrackMuteDetector : NSObject<RTCVideoRenderer>
+@interface TrackMuteDetector : NSObject<LKRTCVideoRenderer>
 
 @property(copy, nonatomic) NSNumber *peerConnectionId;
 @property(copy, nonatomic) NSString *trackId;
@@ -111,17 +111,17 @@ static const NSTimeInterval MUTE_DELAY = 1.5;
     dispatch_resume(_timer);
 }
 
-- (void)renderFrame:(nullable RTCVideoFrame *)frame {
+- (void)renderFrame:(nullable LKRTCVideoFrame *)frame {
     atomic_fetch_add(&_frameCount, 1);
 }
 
 - (void)setSize:(CGSize)size {
-    // XXX unneeded for our purposes, but part of RTCVideoRenderer.
+    // XXX unneeded for our purposes, but part of LKRTCVideoRenderer.
 }
 
 @end
 
-@implementation RTCPeerConnection (VideoTrackAdapter)
+@implementation LKRTCPeerConnection (VideoTrackAdapter)
 
 - (NSMutableDictionary<NSString *, id> *)videoTrackAdapters {
     return objc_getAssociatedObject(self, _cmd);
@@ -132,7 +132,7 @@ static const NSTimeInterval MUTE_DELAY = 1.5;
         self, @selector(videoTrackAdapters), videoTrackAdapters, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (void)addVideoTrackAdapter:(RTCVideoTrack *)track {
+- (void)addVideoTrackAdapter:(LKRTCVideoTrack *)track {
     NSString *trackId = track.trackId;
     if ([self.videoTrackAdapters objectForKey:trackId] != nil) {
         RCTLogWarn(@"[VideoTrackAdapter] Adapter already exists for track %@", trackId);
@@ -149,7 +149,7 @@ static const NSTimeInterval MUTE_DELAY = 1.5;
     RCTLogTrace(@"[VideoTrackAdapter] Adapter created for track %@", trackId);
 }
 
-- (void)removeVideoTrackAdapter:(RTCVideoTrack *)track {
+- (void)removeVideoTrackAdapter:(LKRTCVideoTrack *)track {
     NSString *trackId = track.trackId;
     TrackMuteDetector *muteDetector = [self.videoTrackAdapters objectForKey:trackId];
     if (muteDetector == nil) {
