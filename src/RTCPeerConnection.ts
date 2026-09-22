@@ -55,6 +55,7 @@ type RTCIceServer = {
 
 type RTCConfiguration = {
     bundlePolicy?: 'balanced' | 'max-compat' | 'max-bundle',
+    enableSctpSnap?: boolean,
     iceCandidatePoolSize?: number,
     iceServers?: RTCIceServer[],
     iceTransportPolicy?: 'all' | 'relay',

@@ -92,7 +92,9 @@
 
     // Enable GCM ciphers.
     LKRTCCryptoOptions *cryptoOptions = [[LKRTCCryptoOptions alloc] initWithSrtpEnableGcmCryptoSuites:YES
+                                                                            srtpPreferGcmCryptoSuites:NO
                                                                   srtpEnableAes128Sha1_32CryptoCipher:NO
+                                                                  srtpEnableAes128Sha1_80CryptoCipher:YES
                                                                srtpEnableEncryptedRtpHeaderExtensions:NO
                                                                          sframeRequireFrameEncryption:NO];
     config.cryptoOptions = cryptoOptions;
@@ -120,6 +122,10 @@
         } else if ([bundlePolicy isEqualToString:@"max-bundle"]) {
             config.bundlePolicy = LKRTCBundlePolicyMaxBundle;
         }
+    }
+
+    if (json[@"enableSctpSnap"] != nil && [json[@"enableSctpSnap"] isKindOfClass:[NSNumber class]]) {
+        config.enableSctpSnap = [RCTConvert BOOL:json[@"enableSctpSnap"]];
     }
 
     if (json[@"iceBackupCandidatePairPingInterval"] != nil &&
