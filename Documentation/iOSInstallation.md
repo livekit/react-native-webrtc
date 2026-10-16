@@ -17,17 +17,30 @@ platform :ios, '12.0'
 
 ## Pod source
 
-The native module depends on the `LiveKitWebRTC` pod, which is published on the
-CocoaPods trunk, so no extra `source` lines are needed in your `Podfile`.
-
-If a `LiveKitWebRTC` version has not reached the trunk CDN yet, the
-[livekit/podspecs](https://github.com/livekit/podspecs) repository serves the
-same podspecs and can be added as an additional source:
+The native module depends on the `LiveKitWebRTC` pod, which is published to the
+[livekit/podspecs](https://github.com/livekit/podspecs) spec repo. CocoaPods trunk
+stops accepting new pods on December 2, 2026, so later `LiveKitWebRTC` versions
+will only be available from livekit/podspecs. Add both sources to the top of your
+`Podfile`:
 
 ```ruby
-source 'https://cdn.cocoapods.org/'
 source 'https://github.com/livekit/podspecs.git'
+source 'https://cdn.cocoapods.org/'
 ```
+
+Keep the `cdn.cocoapods.org` line: once a `Podfile` lists any `source`, CocoaPods
+stops using trunk by default, and your other pods still come from there.
+
+When you upgrade `@livekit/react-native-webrtc`, run `pod update LiveKitWebRTC`
+rather than `pod install`, since `pod install` keeps the version recorded in
+`Podfile.lock`. If `pod install` fails with `CocoaPods could not find compatible
+versions for pod "LiveKitWebRTC"` (possibly saying the specs "required a higher
+minimum deployment target"), check that both sources are present and run
+`pod update LiveKitWebRTC`.
+
+A `Found multiple specifications for LiveKitWebRTC` warning is harmless: some
+versions are published to both livekit/podspecs and CocoaPods trunk, and the two
+are identical.
 
 ## Declaring Permissions
 

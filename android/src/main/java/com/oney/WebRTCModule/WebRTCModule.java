@@ -413,6 +413,14 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             conf.presumeWritableWhenFullyRelayed = v;
         }
 
+        // enableSctpSnap (private api)
+        // Maps to an immutable field of the native configuration, so it must hold the same
+        // value at peer connection creation and on every setConfiguration call.
+        if (map.hasKey("enableSctpSnap") && map.getType("enableSctpSnap") == ReadableType.Boolean) {
+            final boolean v = map.getBoolean("enableSctpSnap");
+            conf.enableSctpSnap = v;
+        }
+
         return conf;
     }
 
