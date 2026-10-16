@@ -1,6 +1,6 @@
 {
   "name": "@livekit/react-native-webrtc",
-  "version": "144.2.0",
+  "version": "150.1.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/livekit/react-native-webrtc.git"
@@ -42,12 +42,12 @@
     "@types/react": "17.0.40",
     "@types/react-native": "0.67.3",
     "@types/scheduler": "^0.16.2",
-    "@typescript-eslint/eslint-plugin": "^5.39.0",
-    "@typescript-eslint/parser": "^5.39.0",
+    "@typescript-eslint/eslint-plugin": "^8.71.2",
+    "@typescript-eslint/parser": "^8.71.2",
     "eslint": "^8.24.0",
     "eslint-plugin-import": "^2.26.0",
     "husky": "7.0.2",
-    "lint-staged": "11.2.3",
+    "lint-staged": "^17.6.0",
     "prettier": "2.4.1",
     "react-native-builder-bob": "0.18.2",
     "typescript": "4.6.2"
