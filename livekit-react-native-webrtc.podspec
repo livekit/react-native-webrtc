@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
   s.libraries           = 'c', 'sqlite3', 'stdc++'
   s.framework           = 'AudioToolbox','AVFoundation', 'CoreAudio', 'CoreGraphics', 'CoreVideo', 'GLKit', 'VideoToolbox'
   s.dependency          'React-Core'
-  s.dependency          'LiveKitWebRTC', '= 150.7871.03'
+  s.dependency          'LiveKitWebRTC', '= 150.7871.04'
   
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {
