@@ -912,6 +912,17 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
                 return;
             }
             track.setEnabled(false);
+
+            // MediaStream.dispose() throws on a track disposed while still in it, and a released track
+            // can't be found by id anymore to remove it later.
+            String kind = track.kind();
+            for (MediaStream stream : localStreams.values()) {
+                if ("audio".equals(kind)) {
+                    stream.removeTrack((AudioTrack) track);
+                } else if ("video".equals(kind)) {
+                    stream.removeTrack((VideoTrack) track);
+                }
+            }
             getUserMediaImpl.disposeTrack(id);
         });
     }
