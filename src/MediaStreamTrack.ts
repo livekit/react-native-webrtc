@@ -123,6 +123,9 @@ export default class MediaStreamTrack extends EventTarget<MediaStreamTrackEventM
     stop(): void {
         this.enabled = false;
         this._readyState = 'ended';
+
+        // Like a browser, free the capturer and source on stop(). No-op for remote tracks.
+        this.release();
     }
 
     /**
