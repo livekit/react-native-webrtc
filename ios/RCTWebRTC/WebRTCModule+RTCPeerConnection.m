@@ -1022,8 +1022,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(peerConnectionRemoveTrack
     // Unused in Unified Plan.
 }
 
-RCT_EXPORT_METHOD(generateCertificate : (NSDictionary *)options resolver : (RCTPromiseResolveBlock)
-                      resolve rejecter : (RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(generateCertificate
+                  : (NSDictionary *)options resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject) {
     NSString *keyType = @"ECDSA";
     if (options[@"keyType"]) {
         NSString *type = options[@"keyType"];

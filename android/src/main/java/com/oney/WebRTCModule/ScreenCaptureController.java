@@ -25,8 +25,9 @@ public class ScreenCaptureController extends AbstractVideoCaptureController {
 
     private final Context context;
 
-    public ScreenCaptureController(Context context, int width, int height, Intent mediaProjectionPermissionResultData, float resolutionScale) {
-        super((int)(width * resolutionScale), (int)(height * resolutionScale), DEFAULT_FPS);
+    public ScreenCaptureController(
+            Context context, int width, int height, Intent mediaProjectionPermissionResultData, float resolutionScale) {
+        super((int) (width * resolutionScale), (int) (height * resolutionScale), DEFAULT_FPS);
 
         this.mediaProjectionPermissionResultData = mediaProjectionPermissionResultData;
 
@@ -36,8 +37,8 @@ public class ScreenCaptureController extends AbstractVideoCaptureController {
             @Override
             public void onOrientationChanged(int orientation) {
                 DisplayMetrics displayMetrics = DisplayUtils.getDisplayMetrics((Activity) context);
-                final int width = (int)(displayMetrics.widthPixels * resolutionScale);
-                final int height = (int)(displayMetrics.heightPixels * resolutionScale);
+                final int width = (int) (displayMetrics.widthPixels * resolutionScale);
+                final int height = (int) (displayMetrics.heightPixels * resolutionScale);
                 if (width != ScreenCaptureController.this.actualWidth
                         || height != ScreenCaptureController.this.actualHeight) {
                     ScreenCaptureController.this.actualWidth = width;

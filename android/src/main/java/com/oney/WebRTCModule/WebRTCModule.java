@@ -515,7 +515,8 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     public VideoTrack createVideoTrack(AbstractVideoCaptureController videoCaptureController) {
         try {
             return ThreadUtils
-                    .submitToExecutor((Callable<VideoTrack>) () -> getUserMediaImpl.createVideoTrack(videoCaptureController))
+                    .submitToExecutor(
+                            (Callable<VideoTrack>) () -> getUserMediaImpl.createVideoTrack(videoCaptureController))
                     .get();
         } catch (InterruptedException | ExecutionException e) {
             Log.d(TAG, "createVideoTrack() " + e.getMessage());
@@ -529,7 +530,8 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
 
     public void registerTrack(VideoTrack track, VideoSource source, AbstractVideoCaptureController controller,
             SurfaceTextureHelper surfaceTextureHelper) {
-        ThreadUtils.runOnExecutor(() -> getUserMediaImpl.registerTrack(track, source, controller, surfaceTextureHelper));
+        ThreadUtils.runOnExecutor(
+                () -> getUserMediaImpl.registerTrack(track, source, controller, surfaceTextureHelper));
     }
 
     public void createStream(
@@ -1653,7 +1655,8 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
 
                 try {
                     CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                    ByteArrayInputStream is = new ByteArrayInputStream(cert.certificate.getBytes(StandardCharsets.UTF_8));
+                    ByteArrayInputStream is =
+                            new ByteArrayInputStream(cert.certificate.getBytes(StandardCharsets.UTF_8));
                     X509Certificate x509Cert = (X509Certificate) cf.generateCertificate(is);
 
                     MessageDigest digest = MessageDigest.getInstance("SHA-256");
