@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 import livekit.org.webrtc.AddIceObserver;
 import livekit.org.webrtc.AudioProcessingFactory;
@@ -511,16 +513,36 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         return getUserMediaImpl.getTrack(trackId);
     }
 
-    // Public entry points for other native modules: localStreams and the track map are only safe on the executor.
+    // region Public entry points for other native modules
     public VideoTrack createVideoTrack(AbstractVideoCaptureController videoCaptureController) {
+        Callable<VideoTrack> create = () -> getUserMediaImpl.createVideoTrack(videoCaptureController);
+        Future<VideoTrack> future;
+        if (ThreadUtils.isOnExecutor()) {
+            // Run inline: waiting on the executor from its own thread (e.g. a createStream callback) would deadlock.
+            FutureTask<VideoTrack> task = new FutureTask<>(create);
+            task.run();
+            future = task;
+        } else {
+            future = ThreadUtils.submitToExecutor(create);
+        }
+
+        boolean interrupted = false;
         try {
-            return ThreadUtils
-                    .submitToExecutor(
-                            (Callable<VideoTrack>) () -> getUserMediaImpl.createVideoTrack(videoCaptureController))
-                    .get();
-        } catch (InterruptedException | ExecutionException e) {
+            while (true) {
+                try {
+                    return future.get();
+                } catch (InterruptedException e) {
+                    // Keep waiting: the track is created regardless, and returning early would orphan it.
+                    interrupted = true;
+                }
+            }
+        } catch (ExecutionException e) {
             Log.d(TAG, "createVideoTrack() " + e.getMessage());
             return null;
+        } finally {
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -534,10 +556,25 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
                 () -> getUserMediaImpl.registerTrack(track, source, controller, surfaceTextureHelper));
     }
 
+    /**
+     * Creates a local {@link MediaStream} holding the given tracks and registers it with this module, so it can be
+     * used from JavaScript by its stream ID.
+     * <p>
+     * Asynchronous: the work is queued on the WebRTC executor and this method returns immediately. Work queued
+     * earlier from the same thread, such as {@link #registerTrack}, runs first.
+     *
+     * @param tracks The tracks to add. {@code null} entries are skipped. Video tracks must have been created by
+     *               {@link #createVideoTrack} or registered with {@link #registerTrack}.
+     * @param successCallback Called once, on the WebRTC executor thread, with the new stream's ID and a track info
+     *                        map for each track. It must not block waiting on work queued to the executor, or the
+     *                        executor deadlocks; this module's own entry points are safe to call from it.
+     */
     public void createStream(
             MediaStreamTrack[] tracks, GetUserMediaImpl.BiConsumer<String, ArrayList<WritableMap>> successCallback) {
         ThreadUtils.runOnExecutor(() -> getUserMediaImpl.createStream(tracks, successCallback));
     }
+
+    // endregion
 
     /**
      * Turns an "options" <tt>ReadableMap</tt> into a <tt>MediaConstraints</tt> object.
