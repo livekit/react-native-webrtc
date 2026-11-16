@@ -1,10 +1,10 @@
 
 #import <LiveKitWebRTC/RTCMediaStreamTrack.h>
 
-@class CaptureController;
+@class LKRNCaptureController;
 
 @interface LKRTCMediaStreamTrack (React)
 
-@property(strong, nonatomic) CaptureController *captureController;
+@property(strong, nonatomic) LKRNCaptureController *captureController;
 
 @end

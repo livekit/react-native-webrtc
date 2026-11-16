@@ -5,7 +5,7 @@ import MediaStreamTrackEvent from './MediaStreamTrackEvent';
 import { uniqueID } from './RTCUtil';
 import { EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 type MediaStreamEventMap = {
     addtrack: MediaStreamTrackEvent<'addtrack'>

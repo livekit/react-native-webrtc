@@ -82,14 +82,14 @@ RTCAudioSession.audioSessionDidDeactivate();
 
 ## Background Camera Access
 
-Background camera access on supported devices can be enabled through setting the `enableMultitaskingCameraAccess` flag on WebRTCModuleOptions. This will require
+Background camera access on supported devices can be enabled through setting the `enableMultitaskingCameraAccess` flag on LKRNWebRTCModuleOptions. This will require
 the `voip` background mode capability on iOS 18 or later devices.
 
 In your AppDelegate.m file:
 ```
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  [WebRTCModuleOptions sharedInstance].enableMultitaskingCameraAccess = YES;
+  [LKRNWebRTCModuleOptions sharedInstance].enableMultitaskingCameraAccess = YES;
   
   // ...
 }

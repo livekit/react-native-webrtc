@@ -2,7 +2,7 @@ import { NativeModules, NativeEventEmitter, EmitterSubscription } from 'react-na
 // @ts-ignore
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 // This emitter is going to be used to listen to all the native events (once) and then
 // re-emit them on a JS-only emitter.

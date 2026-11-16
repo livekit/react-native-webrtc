@@ -31,7 +31,7 @@ const RTCPIPView = forwardRef<RTCViewInstance, RTCPIPViewProps>((props, ref) => 
 export function startIOSPIP(ref) {
     UIManager.dispatchViewManagerCommand(
         ReactNative.findNodeHandle(ref.current),
-        UIManager.getViewManagerConfig('RTCVideoView').Commands.startIOSPIP,
+        UIManager.getViewManagerConfig('LKRNRTCVideoView').Commands.startIOSPIP,
         []
     );
 }
@@ -39,7 +39,7 @@ export function startIOSPIP(ref) {
 export function stopIOSPIP(ref) {
     UIManager.dispatchViewManagerCommand(
         ReactNative.findNodeHandle(ref.current),
-        UIManager.getViewManagerConfig('RTCVideoView').Commands.stopIOSPIP,
+        UIManager.getViewManagerConfig('LKRNRTCVideoView').Commands.stopIOSPIP,
         []
     );
 }

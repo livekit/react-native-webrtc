@@ -1,4 +1,4 @@
 
 import { requireNativeComponent } from 'react-native';
 
-export default requireNativeComponent('ScreenCapturePickerView');
+export default requireNativeComponent('LKRNScreenCapturePickerView');

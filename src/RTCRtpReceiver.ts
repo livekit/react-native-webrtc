@@ -5,7 +5,7 @@ import RTCRtpCapabilities from './RTCRtpCapabilities';
 import { RTCRtpParametersInit } from './RTCRtpParameters';
 import RTCRtpReceiveParameters from './RTCRtpReceiveParameters';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export default class RTCRtpReceiver {
     _id: string;

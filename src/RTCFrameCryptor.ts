@@ -3,7 +3,7 @@ import { NativeModules } from 'react-native';
 import { addListener, removeListener } from './EventEmitter';
 import Logger from './Logger';
 import { Event, EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 const log = new Logger('pc');
 

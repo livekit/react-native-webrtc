@@ -1,6 +1,6 @@
 import * as base64 from 'base64-js';
 import { NativeModules } from 'react-native';
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export enum FrameCryptorState {
   FrameCryptorStateNew,

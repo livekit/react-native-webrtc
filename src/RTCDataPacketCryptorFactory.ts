@@ -3,7 +3,7 @@ import { NativeModules } from 'react-native';
 import RTCDataPacketCryptor from './RTCDataPacketCryptor';
 import RTCFrameCryptorAlgorithm from './RTCFrameCryptorFactory';
 import RTCKeyProvider from './RTCKeyProvider';
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export default class RTCDataPacketCryptorFactory {
     static async createDataPacketCryptor(

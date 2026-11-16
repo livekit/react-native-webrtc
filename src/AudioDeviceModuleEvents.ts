@@ -2,7 +2,7 @@ import { NativeModules, Platform } from 'react-native';
 
 import { addListener, removeListener } from './EventEmitter';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export type SpeechActivityEvent = 'started' | 'ended';
 
