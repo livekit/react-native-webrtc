@@ -1,5 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 if (WebRTCModule === null) {
     throw new Error(`WebRTC native module not found.\n${Platform.OS === 'ios' ?

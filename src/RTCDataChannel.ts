@@ -6,7 +6,7 @@ import MessageEvent from './MessageEvent';
 import RTCDataChannelEvent from './RTCDataChannelEvent';
 import { EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 type RTCDataChannelState = 'connecting' | 'open' | 'closing' | 'closed';
 

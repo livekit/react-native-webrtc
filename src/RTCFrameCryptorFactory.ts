@@ -5,7 +5,7 @@ import RTCFrameCryptor from './RTCFrameCryptor';
 import RTCKeyProvider from './RTCKeyProvider';
 import RTCRtpReceiver from './RTCRtpReceiver';
 import RTCRtpSender from './RTCRtpSender';
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export enum RTCFrameCryptorAlgorithm {
   kAesGcm = 0,

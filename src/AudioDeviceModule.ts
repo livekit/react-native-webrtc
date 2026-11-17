@@ -2,7 +2,7 @@ import { NativeModules, Platform } from 'react-native';
 
 import permissions from './Permissions';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export enum AudioEngineMuteMode {
   Unknown = -1,

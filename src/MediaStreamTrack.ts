@@ -7,7 +7,7 @@ import { deepClone, normalizeConstraints } from './RTCUtil';
 import { Event, EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 
 const log = new Logger('pc');
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 
 type MediaStreamTrackState = 'live' | 'ended';

@@ -4,7 +4,7 @@ import RTCRtpCodecCapability from './RTCRtpCodecCapability';
 import RTCRtpReceiver from './RTCRtpReceiver';
 import RTCRtpSender from './RTCRtpSender';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export default class RTCRtpTransceiver {
     _peerConnectionId: number;

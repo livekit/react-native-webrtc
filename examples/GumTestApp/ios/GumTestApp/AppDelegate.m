@@ -1,7 +1,7 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
-#import "WebRTCModuleOptions.h"
+#import "LKRNWebRTCModuleOptions.h"
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -11,7 +11,7 @@
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
   
-  WebRTCModuleOptions* options = [WebRTCModuleOptions sharedInstance];
+  LKRNWebRTCModuleOptions* options = [LKRNWebRTCModuleOptions sharedInstance];
   options.enableMultitaskingCameraAccess = true;
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];

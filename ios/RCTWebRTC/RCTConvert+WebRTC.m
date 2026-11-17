@@ -5,7 +5,7 @@
 #import <React/RCTLog.h>
 #import "RCTConvert+WebRTC.h"
 
-#import "WebRTCModule+RTCPeerConnection.h"
+#import "LKRNWebRTCModule+RTCPeerConnection.h"
 
 @implementation RCTConvert (WebRTC)
 
@@ -190,7 +190,7 @@
             if ([certInfo isKindOfClass:[NSDictionary class]]) {
                 NSString *certId = certInfo[@"certificateId"];
                 if (certId) {
-                    LKRTCCertificate *cert = [WebRTCModule getCertificate:certId];
+                    LKRTCCertificate *cert = [LKRNWebRTCModule getCertificate:certId];
                     if (cert) {
                         config.certificate = cert;
                     }

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.oney.WebRTCModule"
+          package="io.livekit.reactnative.webrtc"
           xmlns:tools="http://schemas.android.com/tools"
     >
     <application>

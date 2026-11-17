@@ -4,7 +4,7 @@ import getDisplayMedia, { Constraints as DisplayMediaConstraints } from './getDi
 import getUserMedia, { Constraints as UserMediaConstraints } from './getUserMedia';
 import { Event, EventTarget, getEventAttributeValue, setEventAttributeValue } from './vendor/event-target-shim';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 type MediaDevicesEventMap = {
     devicechange: Event<'devicechange'>

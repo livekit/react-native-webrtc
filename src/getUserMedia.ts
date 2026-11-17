@@ -8,7 +8,7 @@ import MediaStreamError from './MediaStreamError';
 import permissions from './Permissions';
 import * as RTCUtil from './RTCUtil';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export interface Constraints {
     audio?: boolean | MediaTrackConstraints;

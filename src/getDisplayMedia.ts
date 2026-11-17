@@ -4,7 +4,7 @@ import { NativeModules } from 'react-native';
 import MediaStream from './MediaStream';
 import MediaStreamError from './MediaStreamError';
 
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 
 export interface Constraints {
     android?: {

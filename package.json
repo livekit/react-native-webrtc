@@ -27,7 +27,7 @@
     "react-native": ">=0.60.0"
   },
   "scripts": {
-    "lint": "eslint --max-warnings 0 . && tsc --noEmit",
+    "lint": "eslint --max-warnings 0 . && tsc --noEmit && node tools/prefix-native-names.mjs --check",
     "lintfix": "eslint --max-warnings 0 --fix . && tsc --noEmit",
     "build": "bob build && node tools/postbuild.mjs",
     "prepare": "husky install && npm run build",

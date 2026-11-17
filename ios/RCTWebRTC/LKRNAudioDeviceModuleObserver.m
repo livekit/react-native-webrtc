@@ -1,0 +1,695 @@
+#import "LKRNAudioDeviceModuleObserver.h"
+#import <React/RCTLog.h>
+#import <os/log.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+// Upper bound on how long a delegate callback parks the native audio thread
+// waiting for JS to respond. The wait used to be DISPATCH_TIME_FOREVER, which
+// deadlocks the app if the JS thread is itself blocked inside a synchronous
+// bridge call (e.g. peerConnectionAddTransceiver) that is transitively waiting
+// on this same audio operation. Bounding the wait turns that permanent freeze
+// into a recoverable stall: on timeout we return the default 0 ("proceed") so
+// the engine operation degrades gracefully.
+//
+// Caveat for willEnableEngine: returning 0 here lets the engine proceed even
+// though the JS handler (which configures/activates the AVAudioSession) never
+// completed. libwebrtc re-validates the session *category* after this callback
+// but not that it was *activated*, so a timeout on willEnableEngine can start
+// the engine against an unconfigured session. That degraded-but-recoverable
+// outcome is deliberately preferred over the unrecoverable deadlock.
+static const int64_t kJSResponseTimeoutSeconds = 2;
+
+// Returned from willEnable/didDisable when native automatic audio-session
+// configuration fails, so libwebrtc rolls the engine operation back. Mirrors the
+// SDK's kAudioEngineErrorFailedToConfigureAudioSession value.
+static const NSInteger kAutomaticAudioSessionConfigError = -4100;
+
+static os_log_t ADMObserverLog(void) {
+    static os_log_t log;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        log = os_log_create("com.livekit.react-native-webrtc", "LKRNAudioDeviceModuleObserver");
+    });
+    return log;
+}
+
+@interface LKRNAudioDeviceModuleObserver ()
+
+@property(weak, nonatomic) LKRNWebRTCModule *module;
+@property(nonatomic, strong) dispatch_semaphore_t engineCreatedSemaphore;
+@property(nonatomic, strong) dispatch_semaphore_t willEnableEngineSemaphore;
+@property(nonatomic, strong) dispatch_semaphore_t willStartEngineSemaphore;
+@property(nonatomic, strong) dispatch_semaphore_t didStopEngineSemaphore;
+@property(nonatomic, strong) dispatch_semaphore_t didDisableEngineSemaphore;
+@property(nonatomic, strong) dispatch_semaphore_t willReleaseEngineSemaphore;
+
+@property(nonatomic, assign) NSInteger engineCreatedResult;
+@property(nonatomic, assign) NSInteger willEnableEngineResult;
+@property(nonatomic, assign) NSInteger willStartEngineResult;
+@property(nonatomic, assign) NSInteger didStopEngineResult;
+@property(nonatomic, assign) NSInteger didDisableEngineResult;
+@property(nonatomic, assign) NSInteger willReleaseEngineResult;
+
+// Monotonic id stamped on every event sent to JS, and the id of the round
+// currently being awaited (0 = none). JS echoes the id back when it resolves;
+// the observer only accepts a resolve whose id matches the in-flight round, so a
+// late resolve from a round that already timed out cannot be misattributed to
+// the next round. Both are guarded by @synchronized(self) since the send side
+// runs on the native audio thread and the resolve side on the JS thread.
+@property(nonatomic, assign) NSInteger requestIdSeq;
+@property(nonatomic, assign) NSInteger awaitingRequestId;
+
+// Whether the native auto-config path currently holds an
+// LKRTCAudioSession activation it must later release. LKRTCAudioSession refcounts
+// setActive, so a mismatched activate/release leaves the OS session stuck active.
+// Touched only on the serial worker thread; atomic as insurance against future
+// cross-thread reads.
+@property(atomic, assign) BOOL autoSessionHoldsActivation;
+
+// Last Apple Voice Processing I/O state reported by willEnableEngine. Only that
+// callback carries it: by the time didDisable fires the input path is already
+// torn down, so neither the callback nor a readback from the module can say what
+// the engine was running with. Cached so didDisable reconfigures with the same
+// variant willEnable applied. Touched only on the serial worker thread; atomic as
+// insurance against future cross-thread reads.
+@property(atomic, assign) BOOL lastVoiceProcessingEnabled;
+
+@end
+
+@implementation LKRNAudioDeviceModuleObserver
+
+- (instancetype)initWithWebRTCModule:(LKRNWebRTCModule *)module {
+    self = [super init];
+    if (self) {
+        self.module = module;
+        _engineCreatedSemaphore = dispatch_semaphore_create(0);
+        _willEnableEngineSemaphore = dispatch_semaphore_create(0);
+        _willStartEngineSemaphore = dispatch_semaphore_create(0);
+        _didStopEngineSemaphore = dispatch_semaphore_create(0);
+        _didDisableEngineSemaphore = dispatch_semaphore_create(0);
+        _willReleaseEngineSemaphore = dispatch_semaphore_create(0);
+
+        // Default every hook to active so a delegate callback that fires before JS
+        // has reconciled its handler state (e.g. a recreated observer) still does the
+        // bounded round trip rather than silently skipping a handler's veto. JS
+        // reconciles these to the real handler state in setupListeners().
+        _isEngineCreatedActive = YES;
+        _isWillEnableEngineActive = YES;
+        _isWillStartEngineActive = YES;
+        _isDidStopEngineActive = YES;
+        _isDidDisableEngineActive = YES;
+        _isWillReleaseEngineActive = YES;
+    }
+    return self;
+}
+
+#pragma mark - Bounded JS round-trip
+
+// Sends an event to JS and blocks the calling (native audio) thread until JS
+// resolves the matching semaphore or kJSResponseTimeoutSeconds elapses.
+//
+// Each round is tagged with a unique requestId that JS echoes back on resolve;
+// -resolveRequestId:... drops any resolve whose id does not match the in-flight
+// round, so a late resolve from a previously timed-out round cannot signal this
+// round's semaphore. The pre-send drain below is the remaining safety net: it
+// clears a stray signal from the narrow case where a matching resolve raced the
+// previous round past its timeout deadline (signalling after that round had
+// already given up). No legitimate signal for *this* round can exist at drain
+// time because the event has not been sent yet.
+//
+// If isActive is NO, returns 0 immediately without a JS round trip, avoiding the
+// deadlock window when no handler is registered.
+//
+// Returns the JS-provided result on success, or 0 on timeout or when inactive.
+- (NSInteger)sendEventAndWaitWithName:(NSString *)eventName
+                                 body:(NSDictionary *)body
+                            semaphore:(dispatch_semaphore_t)semaphore
+                          resultBlock:(NSInteger (^)(void))resultBlock
+                             isActive:(BOOL)isActive {
+    if (!isActive) {
+        // No handler registered, proceed immediately without JS round trip.
+        // This avoids the deadlock window entirely.
+        os_log(ADMObserverLog(), "Skipping JS round-trip for %{public}@ (no handler registered)", eventName);
+        return 0;
+    }
+
+    NSInteger requestId;
+    @synchronized(self) {
+        requestId = ++self.requestIdSeq;
+        self.awaitingRequestId = requestId;
+    }
+
+    while (dispatch_semaphore_wait(semaphore, DISPATCH_TIME_NOW) == 0) {
+        // Drain a stray signal left by a resolve that raced the previous round's timeout.
+    }
+
+    NSMutableDictionary *payload = [body mutableCopy];
+    payload[@"requestId"] = @(requestId);
+    [self.module sendEventWithName:eventName body:payload];
+
+    dispatch_time_t deadline = dispatch_time(DISPATCH_TIME_NOW, kJSResponseTimeoutSeconds * NSEC_PER_SEC);
+    if (dispatch_semaphore_wait(semaphore, deadline) != 0) {
+        @synchronized(self) {
+            // Stop accepting this round's resolve; if it arrives now it is stale.
+            if (self.awaitingRequestId == requestId) {
+                self.awaitingRequestId = 0;
+            }
+        }
+        os_log_error(ADMObserverLog(),
+                     "Timed out after %llds waiting for JS to respond to %{public}@; returning default 0",
+                     (long long)kJSResponseTimeoutSeconds,
+                     eventName);
+        return 0;
+    }
+
+    return resultBlock();
+}
+
+#pragma mark - LKRTCAudioDeviceModuleDelegate
+
+- (void)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+    didReceiveSpeechActivityEvent:(LKRTCSpeechActivityEvent)speechActivityEvent {
+    NSString *eventType = speechActivityEvent == LKRTCSpeechActivityEventStarted ? @"started" : @"ended";
+
+    [self.module sendEventWithName:kEventAudioDeviceModuleSpeechActivity
+                              body:@{
+                                  @"event" : eventType,
+                              }];
+
+    RCTLog(@"[LKRNAudioDeviceModuleObserver] Speech activity event: %@", eventType);
+}
+
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule didCreateEngine:(AVAudioEngine *)engine {
+    BOOL isActive = self.isEngineCreatedActive;
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine created - waiting for JS response");
+    }
+
+    NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineCreated
+                                                 body:@{}
+                                            semaphore:self.engineCreatedSemaphore
+                                          resultBlock:^NSInteger {
+                                              return self.engineCreatedResult;
+                                          }
+                                             isActive:isActive];
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine created - JS returned: %ld", (long)result);
+    }
+    return result;
+}
+
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+              willEnableEngine:(AVAudioEngine *)engine
+              isPlayoutEnabled:(BOOL)isPlayoutEnabled
+            isRecordingEnabled:(BOOL)isRecordingEnabled
+      isVoiceProcessingEnabled:(BOOL)isVoiceProcessingEnabled {
+    self.lastVoiceProcessingEnabled = isVoiceProcessingEnabled;
+
+    // With no custom JS handler registered, configure the audio session natively
+    // here instead of doing a JS round trip. This is the default path and avoids
+    // parking the audio worker thread on the JS thread entirely. A custom handler
+    // (isWillEnableEngineActive == YES) falls through to the bounded round trip.
+    if (!self.isWillEnableEngineActive && self.automaticAudioSessionConfig != nil) {
+        return [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled
+                                                      recording:isRecordingEnabled
+                                                voiceProcessing:isVoiceProcessingEnabled];
+    }
+
+    BOOL isActive = self.isWillEnableEngineActive;
+
+    if (isActive) {
+        RCTLog(
+            @"[LKRNAudioDeviceModuleObserver] Engine will enable - playout: %d, recording: %d, voiceProcessing: %d - "
+            @"waiting for JS response",
+            isPlayoutEnabled,
+            isRecordingEnabled,
+            isVoiceProcessingEnabled);
+    }
+
+    NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineWillEnable
+                                                 body:@{
+                                                     @"isPlayoutEnabled" : @(isPlayoutEnabled),
+                                                     @"isRecordingEnabled" : @(isRecordingEnabled),
+                                                     @"isVoiceProcessingEnabled" : @(isVoiceProcessingEnabled),
+                                                 }
+                                            semaphore:self.willEnableEngineSemaphore
+                                          resultBlock:^NSInteger {
+                                              return self.willEnableEngineResult;
+                                          }
+                                             isActive:isActive];
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine will enable - JS returned: %ld", (long)result);
+
+        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Audio session category: %@", audioSession.category);
+    }
+
+    return result;
+}
+
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+               willStartEngine:(AVAudioEngine *)engine
+              isPlayoutEnabled:(BOOL)isPlayoutEnabled
+            isRecordingEnabled:(BOOL)isRecordingEnabled {
+    BOOL isActive = self.isWillStartEngineActive;
+
+    if (isActive) {
+        RCTLog(
+            @"[LKRNAudioDeviceModuleObserver] Engine will start - playout: %d, recording: %d - waiting for JS response",
+            isPlayoutEnabled,
+            isRecordingEnabled);
+    }
+
+    NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineWillStart
+                                                 body:@{
+                                                     @"isPlayoutEnabled" : @(isPlayoutEnabled),
+                                                     @"isRecordingEnabled" : @(isRecordingEnabled),
+                                                 }
+                                            semaphore:self.willStartEngineSemaphore
+                                          resultBlock:^NSInteger {
+                                              return self.willStartEngineResult;
+                                          }
+                                             isActive:isActive];
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine will start - JS returned: %ld", (long)result);
+    }
+    return result;
+}
+
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+                 didStopEngine:(AVAudioEngine *)engine
+              isPlayoutEnabled:(BOOL)isPlayoutEnabled
+            isRecordingEnabled:(BOOL)isRecordingEnabled {
+    BOOL isActive = self.isDidStopEngineActive;
+
+    if (isActive) {
+        RCTLog(
+            @"[LKRNAudioDeviceModuleObserver] Engine did stop - playout: %d, recording: %d - waiting for JS response",
+            isPlayoutEnabled,
+            isRecordingEnabled);
+    }
+
+    NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineDidStop
+                                                 body:@{
+                                                     @"isPlayoutEnabled" : @(isPlayoutEnabled),
+                                                     @"isRecordingEnabled" : @(isRecordingEnabled),
+                                                 }
+                                            semaphore:self.didStopEngineSemaphore
+                                          resultBlock:^NSInteger {
+                                              return self.didStopEngineResult;
+                                          }
+                                             isActive:isActive];
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine did stop - JS returned: %ld", (long)result);
+    }
+    return result;
+}
+
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+              didDisableEngine:(AVAudioEngine *)engine
+              isPlayoutEnabled:(BOOL)isPlayoutEnabled
+            isRecordingEnabled:(BOOL)isRecordingEnabled {
+    // Counterpart of willEnable - apply the native session policy (here the
+    // deactivate-on-stop edge) without a JS round trip when no custom handler
+    // is registered. Also entered with a nil policy while an activation hold is
+    // still outstanding, so a hold orphaned by clearing the policy is released
+    // at the next full stop instead of leaking.
+    if (!self.isDidDisableEngineActive &&
+        (self.automaticAudioSessionConfig != nil || self.autoSessionHoldsActivation)) {
+        NSInteger result = [self applyAutomaticAudioSessionConfigForPlayout:isPlayoutEnabled
+                                                                  recording:isRecordingEnabled
+                                                            voiceProcessing:self.lastVoiceProcessingEnabled];
+        if (result != 0) {
+            // didDisable fires after the engine's disable work has already run, so
+            // libwebrtc cannot roll this operation back. Propagating an error here
+            // (e.g. a failed reconfigure on a duplex to playout transition) would
+            // only desync its logical engine state from hardware that has already
+            // changed. Log and report the operation as completed. Only willEnable
+            // propagates configuration and activation errors, where the enable has
+            // not happened yet and a rollback is still meaningful.
+            os_log_error(
+                ADMObserverLog(), "Native auto-config: error %ld in didDisable treated as completed", (long)result);
+        }
+        return 0;
+    }
+
+    BOOL isActive = self.isDidDisableEngineActive;
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine did disable - playout: %d, recording: %d - waiting for JS "
+               @"response",
+               isPlayoutEnabled,
+               isRecordingEnabled);
+    }
+
+    NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineDidDisable
+                                                 body:@{
+                                                     @"isPlayoutEnabled" : @(isPlayoutEnabled),
+                                                     @"isRecordingEnabled" : @(isRecordingEnabled),
+                                                     @"isVoiceProcessingEnabled" : @(self.lastVoiceProcessingEnabled),
+                                                 }
+                                            semaphore:self.didDisableEngineSemaphore
+                                          resultBlock:^NSInteger {
+                                              return self.didDisableEngineResult;
+                                          }
+                                             isActive:isActive];
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine did disable - JS returned: %ld", (long)result);
+    }
+    return result;
+}
+
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule willReleaseEngine:(AVAudioEngine *)engine {
+    BOOL isActive = self.isWillReleaseEngineActive;
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine will release - waiting for JS response");
+    }
+
+    NSInteger result = [self sendEventAndWaitWithName:kEventAudioDeviceModuleEngineWillRelease
+                                                 body:@{}
+                                            semaphore:self.willReleaseEngineSemaphore
+                                          resultBlock:^NSInteger {
+                                              return self.willReleaseEngineResult;
+                                          }
+                                             isActive:isActive];
+
+    if (isActive) {
+        RCTLog(@"[LKRNAudioDeviceModuleObserver] Engine will release - JS returned: %ld", (long)result);
+    }
+    return result;
+}
+
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+                        engine:(AVAudioEngine *)engine
+      configureInputFromSource:(nullable AVAudioNode *)source
+                 toDestination:(AVAudioNode *)destination
+                    withFormat:(AVAudioFormat *)format
+                       context:(NSDictionary *)context {
+    RCTLog(@"[LKRNAudioDeviceModuleObserver] Configure input - format: %@", format);
+    return 0;
+}
+
+- (NSInteger)audioDeviceModule:(LKRTCAudioDeviceModule *)audioDeviceModule
+                        engine:(AVAudioEngine *)engine
+     configureOutputFromSource:(AVAudioNode *)source
+                 toDestination:(nullable AVAudioNode *)destination
+                    withFormat:(AVAudioFormat *)format
+                       context:(NSDictionary *)context {
+    RCTLog(@"[LKRNAudioDeviceModuleObserver] Configure output - format: %@", format);
+    return 0;
+}
+
+- (void)audioDeviceModuleDidUpdateDevices:(LKRTCAudioDeviceModule *)audioDeviceModule {
+    [self.module sendEventWithName:kEventAudioDeviceModuleDevicesUpdated body:@{}];
+
+    RCTLog(@"[LKRNAudioDeviceModuleObserver] Devices updated");
+}
+
+#pragma mark - Resolve methods from JS
+
+// Applies a JS response only if its requestId matches the round currently being
+// awaited. A non-matching id means the round already timed out and moved on, so
+// the response is dropped without touching the result or signalling — preventing
+// a stale value from being handed to a later round.
+- (void)resolveRequestId:(NSInteger)requestId store:(void (^)(void))store semaphore:(dispatch_semaphore_t)semaphore {
+    @synchronized(self) {
+        if (requestId != self.awaitingRequestId) {
+            return;
+        }
+        self.awaitingRequestId = 0;
+        store();
+        // Signal inside the lock so this signal is always posted before the next
+        // round's send-side @synchronized block can start. Otherwise a resolve
+        // preempted between releasing the lock and signalling could, across a round
+        // boundary, wake the next round and hand it this round's result. Keeping it
+        // inside the lock also lets the next round's pre-send drain reliably clear
+        // any stray signal left by a resolve that raced its own timeout.
+        dispatch_semaphore_signal(semaphore);
+    }
+}
+
+- (void)resolveEngineCreatedWithRequestId:(NSInteger)requestId result:(NSInteger)result {
+    [self resolveRequestId:requestId
+                     store:^{
+                         self.engineCreatedResult = result;
+                     }
+                 semaphore:self.engineCreatedSemaphore];
+}
+
+- (void)resolveWillEnableEngineWithRequestId:(NSInteger)requestId result:(NSInteger)result {
+    [self resolveRequestId:requestId
+                     store:^{
+                         self.willEnableEngineResult = result;
+                     }
+                 semaphore:self.willEnableEngineSemaphore];
+}
+
+- (void)resolveWillStartEngineWithRequestId:(NSInteger)requestId result:(NSInteger)result {
+    [self resolveRequestId:requestId
+                     store:^{
+                         self.willStartEngineResult = result;
+                     }
+                 semaphore:self.willStartEngineSemaphore];
+}
+
+- (void)resolveDidStopEngineWithRequestId:(NSInteger)requestId result:(NSInteger)result {
+    [self resolveRequestId:requestId
+                     store:^{
+                         self.didStopEngineResult = result;
+                     }
+                 semaphore:self.didStopEngineSemaphore];
+}
+
+- (void)resolveDidDisableEngineWithRequestId:(NSInteger)requestId result:(NSInteger)result {
+    [self resolveRequestId:requestId
+                     store:^{
+                         self.didDisableEngineResult = result;
+                     }
+                 semaphore:self.didDisableEngineSemaphore];
+}
+
+- (void)resolveWillReleaseEngineWithRequestId:(NSInteger)requestId result:(NSInteger)result {
+    [self resolveRequestId:requestId
+                     store:^{
+                         self.willReleaseEngineResult = result;
+                     }
+                 semaphore:self.willReleaseEngineSemaphore];
+}
+
+#pragma mark - Native automatic audio session configuration
+
+// Applies the pushed audio-session policy on the worker thread:
+// - configures on every active state,
+// - activates when the session is not
+// - optionally deactivates on stop,
+// - returns a non-zero error code on failure so libwebrtc rolls the operation back.
+//
+// Activation is decided against LKRTCAudioSession's own state rather than a mirror
+// of past engine states, so a policy re-push mid-call (setupIOSAudioManagement
+// called again), a path switch, or an interruption cannot desync it:
+// - session already active (previous hold, custom JS path, or the app) ->
+//   reconfigure only, never a second refcounted activation.
+// - session inactive (fresh start, or the custom path deactivated it before a
+//   switch back to the native path) -> activate and take the hold.
+- (NSInteger)applyAutomaticAudioSessionConfigForPlayout:(BOOL)isPlayoutEnabled
+                                              recording:(BOOL)isRecordingEnabled
+                                        voiceProcessing:(BOOL)isVoiceProcessingEnabled {
+    NSDictionary *policy = self.automaticAudioSessionConfig;
+    BOOL nowActive = isPlayoutEnabled || isRecordingEnabled;
+
+    if (policy == nil) {
+        // The policy was cleared while we still hold an activation (a setup was
+        // torn down mid-call, or a deactivateOnStop:NO policy was abandoned).
+        // Release the orphaned hold at the next full stop so the shared
+        // activation count stays balanced. No configuration is applied because
+        // the native path is disarmed.
+        if (!nowActive && self.autoSessionHoldsActivation) {
+            os_log(ADMObserverLog(), "Native auto-config: releasing orphaned activation hold");
+            LKRTCAudioSession *session = [LKRTCAudioSession sharedInstance];
+            [session lockForConfiguration];
+            NSError *releaseError = nil;
+            [session setActive:NO error:&releaseError];
+            self.autoSessionHoldsActivation = NO;
+            [session unlockForConfiguration];
+            if (releaseError != nil) {
+                os_log_error(ADMObserverLog(),
+                             "Native auto-config: orphaned hold release failed (continuing): %{public}@",
+                             releaseError.localizedDescription);
+            }
+        }
+        return 0;
+    }
+
+    LKRTCAudioSession *session = [LKRTCAudioSession sharedInstance];
+    [session lockForConfiguration];
+
+    NSError *error = nil;
+    if (!nowActive) {
+        if (self.autoSessionHoldsActivation && [policy[@"deactivateOnStop"] boolValue]) {
+            os_log(ADMObserverLog(), "Native auto-config: deactivating audio session");
+            NSError *deactivateError = nil;
+            [session setActive:NO error:&deactivateError];
+            // LKRTCAudioSession decrements its activation count even when the OS
+            // session is already inactive (e.g. an interruption cleared it) or the
+            // call fails, so the hold is released in every outcome.
+            self.autoSessionHoldsActivation = NO;
+            if (deactivateError != nil) {
+                // Deliberately not propagated. By the time didDisable fires the
+                // engine's disable work is already done and the activation count is
+                // already released, so libwebrtc has nothing it could roll back. A
+                // non-zero return would only desync its logical engine state from
+                // hardware that is already stopped.
+                os_log_error(ADMObserverLog(),
+                             "Native auto-config: deactivation failed (continuing): %{public}@",
+                             deactivateError.localizedDescription);
+            }
+        }
+    } else {
+        // Recording uses the duplex (playAndRecord) config, while playout-only uses
+        // the playback config. Both are supplied by the SDK in automaticAudioSessionConfig.
+        //
+        // The voiceChat/videoChat modes engage iOS's call-tuned speaker gain while
+        // capture is active. Apple Voice Processing I/O compensates with its own
+        // loudness stage; with VPIO off nothing does and remote audio plays back
+        // noticeably quieter, so the SDK supplies a separate recording variant for
+        // that case. It is optional, so a policy from an SDK predating it keeps the
+        // previous behavior.
+        NSDictionary *cfg;
+        if (!isRecordingEnabled) {
+            cfg = policy[@"playout"];
+        } else if (!isVoiceProcessingEnabled && policy[@"recordingWithoutVoiceProcessing"] != nil) {
+            cfg = policy[@"recordingWithoutVoiceProcessing"];
+        } else {
+            cfg = policy[@"recording"];
+        }
+        LKRTCAudioSessionConfiguration *rtcConfig = [LKRTCAudioSessionConfiguration webRTCConfiguration];
+        if (cfg[@"audioCategory"] != nil) {
+            rtcConfig.category = [self avAudioSessionCategoryFromString:cfg[@"audioCategory"]];
+        }
+        if (cfg[@"audioMode"] != nil) {
+            rtcConfig.mode = [self avAudioSessionModeFromString:cfg[@"audioMode"]];
+        }
+        if (cfg[@"audioCategoryOptions"] != nil) {
+            rtcConfig.categoryOptions = [self avAudioSessionCategoryOptionsFromStrings:cfg[@"audioCategoryOptions"]];
+        }
+        os_log(ADMObserverLog(), "Native auto-config: setting category %{public}@", rtcConfig.category);
+        [session setConfiguration:rtcConfig error:&error];
+        if (error == nil && !session.isActive) {
+            BOOL hadHold = self.autoSessionHoldsActivation;
+            os_log(ADMObserverLog(), "Native auto-config: activating audio session");
+            [session setActive:YES error:&error];
+            if (error == nil) {
+                if (hadHold) {
+                    // An interruption or an external deactivation (e.g. CallKit)
+                    // cleared isActive while our activation count was still held, so
+                    // the successful reactivation above stacked a second count onto
+                    // the same hold. Drop the extra count. The drop is a pure
+                    // decrement while the count sits above one, so the session stays
+                    // active.
+                    //
+                    // Ordered activate-first deliberately. Releasing before
+                    // reactivating would zero the count whenever the reactivation
+                    // fails, and LKRTCAudioSession's interruption-end recovery
+                    // deactivates outright at count zero. A failure must leave the
+                    // prior hold untouched for that recovery to restore it.
+                    os_log(ADMObserverLog(), "Native auto-config: dropping extra count after reactivating");
+                    NSError *dropError = nil;
+                    [session setActive:NO error:&dropError];
+                    if (!session.isActive) {
+                        // The drop deactivated, which means the held count had
+                        // already been consumed by an external unmatched release and
+                        // the drop just gave back the count the reactivation took.
+                        // Reactivate and keep that single fresh count as the hold,
+                        // so even a stale hold converges to a balanced state.
+                        os_log(ADMObserverLog(), "Native auto-config: reactivating after dropping a stale hold");
+                        [session setActive:YES error:&error];
+                    }
+                }
+                if (error == nil) {
+                    self.autoSessionHoldsActivation = YES;
+                }
+            }
+        }
+    }
+
+    [session unlockForConfiguration];
+
+    if (error != nil) {
+        os_log_error(ADMObserverLog(), "Native auto-config failed: %{public}@", error.localizedDescription);
+        return kAutomaticAudioSessionConfigError;
+    }
+
+    return 0;
+}
+
+// TODO: this friendly-string -> AVAudioSession mapping mirrors AudioUtils in the
+// LiveKit React Native SDK. Keep the accepted values in sync, or consolidate by
+// pushing raw AVAudioSession values across the bridge instead.
+- (NSString *)avAudioSessionCategoryFromString:(NSString *)value {
+    static NSDictionary<NSString *, NSString *> *map;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        map = @{
+            @"ambient" : AVAudioSessionCategoryAmbient,
+            @"soloAmbient" : AVAudioSessionCategorySoloAmbient,
+            @"playback" : AVAudioSessionCategoryPlayback,
+            @"record" : AVAudioSessionCategoryRecord,
+            @"playAndRecord" : AVAudioSessionCategoryPlayAndRecord,
+            @"multiRoute" : AVAudioSessionCategoryMultiRoute,
+        };
+    });
+    return map[value] ?: AVAudioSessionCategoryPlayAndRecord;
+}
+
+- (NSString *)avAudioSessionModeFromString:(NSString *)value {
+    static NSDictionary<NSString *, NSString *> *map;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        map = @{
+            @"default" : AVAudioSessionModeDefault,
+            @"voiceChat" : AVAudioSessionModeVoiceChat,
+            @"videoChat" : AVAudioSessionModeVideoChat,
+            @"gameChat" : AVAudioSessionModeGameChat,
+            @"videoRecording" : AVAudioSessionModeVideoRecording,
+            @"measurement" : AVAudioSessionModeMeasurement,
+            @"moviePlayback" : AVAudioSessionModeMoviePlayback,
+            @"spokenAudio" : AVAudioSessionModeSpokenAudio,
+            @"voicePrompt" : AVAudioSessionModeVoicePrompt,
+        };
+    });
+    return map[value] ?: AVAudioSessionModeDefault;
+}
+
+- (AVAudioSessionCategoryOptions)avAudioSessionCategoryOptionsFromStrings:(NSArray<NSString *> *)options {
+    AVAudioSessionCategoryOptions result = 0;
+    for (NSString *option in options) {
+        if ([option isEqualToString:@"mixWithOthers"]) {
+            result |= AVAudioSessionCategoryOptionMixWithOthers;
+        } else if ([option isEqualToString:@"duckOthers"]) {
+            result |= AVAudioSessionCategoryOptionDuckOthers;
+        } else if ([option isEqualToString:@"allowBluetooth"]) {
+            result |= AVAudioSessionCategoryOptionAllowBluetooth;
+        } else if ([option isEqualToString:@"allowBluetoothA2DP"]) {
+            result |= AVAudioSessionCategoryOptionAllowBluetoothA2DP;
+        } else if ([option isEqualToString:@"allowAirPlay"]) {
+            result |= AVAudioSessionCategoryOptionAllowAirPlay;
+        } else if ([option isEqualToString:@"defaultToSpeaker"]) {
+            result |= AVAudioSessionCategoryOptionDefaultToSpeaker;
+        } else if ([option isEqualToString:@"interruptSpokenAudioAndMixWithOthers"]) {
+            result |= AVAudioSessionCategoryOptionInterruptSpokenAudioAndMixWithOthers;
+        }
+    }
+    return result;
+}
+
+@end
+
+NS_ASSUME_NONNULL_END

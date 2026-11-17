@@ -2,7 +2,7 @@ import * as base64 from 'base64-js';
 import { NativeModules } from 'react-native';
 
 import Logger from './Logger';
-const { WebRTCModule } = NativeModules;
+const { LKRNWebRTCModule: WebRTCModule } = NativeModules;
 const log = new Logger('pc');
 
 export interface RTCEncryptedPacket {
